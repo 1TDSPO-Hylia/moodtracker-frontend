@@ -10,10 +10,6 @@ export default function MainLayout() {
       <header className="app-navbar">
         <div className="app-container flex items-center justify-between gap-6">
           <div className="flex flex-col">
-            <span className="text-sm font-semibold">MoodTracker</span>
-            <span className="text-[11px] text-muted-foreground">
-              Monitoramento de humor e risco de burnout
-            </span>
           </div>
 
           <nav className="flex items-center gap-4 text-sm">
