@@ -1,8 +1,7 @@
 @import "tailwindcss";
 
-@import "tailwindcss";
+/* --- LAYOUT GERAL --- */
 
-/* Layout geral */
 .app-shell {
   @apply min-h-screen flex flex-col bg-[#252C33] text-slate-50;
 }
@@ -11,7 +10,8 @@
   @apply max-w-6xl mx-auto px-4;
 }
 
-/* Navbar & Footer */
+/* --- NAVBAR & FOOTER --- */
+
 .app-navbar {
   @apply h-16 border-b border-[#485561] bg-[#313436] flex items-center;
 }
@@ -21,44 +21,34 @@
 }
 
 .app-footer-inner {
-  @apply app-container py-4 text-xs text-slate-300 flex justify-between;
+  /* não pode usar @apply app-container aqui */
+  @apply max-w-6xl mx-auto px-4 py-4 text-xs text-slate-300 flex justify-between;
 }
 
-/* Cartões / superfícies */
-.app-card {
-  @apply rounded-2xl bg-[#313436] border border-[#485561] shadow-lg;
+/* --- TIPOGRAFIA / TEXTOS --- */
+
+.app-page-title {
+  @apply text-2xl md:text-3xl font-semibold tracking-tight;
 }
 
-.app-soft-surface {
-  @apply rounded-2xl bg-[#313436] border border-[#485561];
-}
-
-/* Tipografia */
-.app-title {
-  @apply text-4xl font-bold tracking-tight text-[#3691E0];
-}
-
-.app-subtitle {
-  @apply text-2xl md:text-3xl font-semibold tracking-tight text-slate-50;
+.app-main-title {
+  @apply text-3xl md:text-4xl font-bold tracking-tight;
 }
 
 .app-text-muted {
   @apply text-sm md:text-base text-slate-300;
 }
 
-/* Botões e chips */
-.app-primary-btn {
-  @apply inline-flex items-center justify-center rounded-md px-4 py-2
-    text-sm font-medium bg-[#3691E0] text-white
-    hover:bg-[#4A84B6] transition-colors;
-}
+/* --- CHIPS / NAV INTERNA --- */
 
 .app-chip {
-  @apply px-3 py-1 rounded-full border border-[#485561] bg-[#313436]
-    text-slate-100 hover:bg-[#4A84B6] transition-colors text-sm;
+  @apply px-3 py-1 rounded-full border border-[#485561]
+    bg-[#313436] text-slate-100
+    hover:bg-[#4A84B6] transition-colors text-sm;
 }
 
-/* FAQ item */
+/* --- FAQ --- */
+
 .app-faq-item {
   @apply border border-[#485561] rounded-xl overflow-hidden bg-[#313436]/80;
 }
@@ -76,24 +66,48 @@
   @apply px-4 text-sm md:text-base text-slate-200;
 }
 
-/* Formulário de contato */
+/* --- FORM CONTATO --- */
+
+.app-form-card {
+  @apply space-y-4 rounded-2xl border border-[#485561]
+    bg-[#313436]/90 p-4 md:p-6 shadow-sm;
+}
+
 .app-input {
-  @apply w-full rounded-md border border-[#485561] bg-[#252C33]
+  @apply w-full rounded-md border border-[#133b5f] bg-[#252C33]
     px-3 py-2 text-sm text-slate-50
     outline-none focus:ring-2 focus:ring-[#3691E0];
 }
 
 .app-textarea {
-  @apply app-input min-h-[100px] resize-vertical;
+  @apply w-full rounded-md border border-[#485561] bg-[#252C33]
+    px-3 py-2 text-sm text-slate-50
+    outline-none focus:ring-2 focus:ring-[#3691E0]
+    min-h-[100px] resize-y;
 }
 
 .app-error {
   @apply text-xs text-red-400;
 }
 
-/* Cards de integrante */
+.app-success {
+  @apply mt-3 text-sm text-emerald-300 bg-emerald-900/40 border border-emerald-500 rounded-md px-3 py-2;
+}
+
+/* --- BOTÃO PRIMÁRIO --- */
+
+.app-primary-btn {
+  @apply inline-flex items-center justify-center rounded-md border border-transparent
+    px-4 py-2 text-sm font-medium
+    bg-[#3691E0] text-white hover:bg-[#4A84B6] transition-colors;
+}
+
+/* --- CARDS DE INTEGRANTES --- */
+
 .app-member-card {
-  @apply app-card p-4 flex flex-col items-center text-center space-y-3 bg-[#313436]/90;
+  @apply border border-[#485561] rounded-2xl p-4
+    bg-[#313436]/90 shadow-sm
+    flex flex-col items-center text-center space-y-3;
 }
 
 .app-member-avatar {

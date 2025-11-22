@@ -5,9 +5,12 @@ export default function Navbar() {
     "text-sm font-medium transition-colors hover:opacity-80";
 
   return (
-    <header className="h-16 border-b flex items-center">
-      <nav className="max-w-6xl mx-auto w-full flex items-center justify-between px-4">
-        <NavLink to="/" className="text-lg font-bold tracking-tight">
+    <header className="app-navbar">
+      <nav className="app-container w-full flex items-center justify-between">
+        <NavLink
+          to="/"
+          className="text-lg font-bold tracking-tight text-[#3691E0]"
+        >
           MoodTracker
         </NavLink>
 
@@ -15,7 +18,9 @@ export default function Navbar() {
           <NavLink
             to="/"
             className={({ isActive }) =>
-              `${linkBase} ${isActive ? "underline" : ""}`
+              `${linkBase} ${
+                isActive ? "text-[#3691E0]" : "text-slate-200"
+              }`
             }
           >
             Home
@@ -24,7 +29,9 @@ export default function Navbar() {
           <NavLink
             to="/about"
             className={({ isActive }) =>
-              `${linkBase} ${isActive ? "underline" : ""}`
+              `${linkBase} ${
+                isActive ? "text-[#3691E0]" : "text-slate-200"
+              }`
             }
           >
             Sobre
