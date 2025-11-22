@@ -1,5 +1,30 @@
 // src/pages/HomePage.tsx
+import { useEffect, useState } from "react";
+import { getRandomTip, type Tip } from "../lib/api";
+
 export default function HomePage() {
+  const [tip, setTip] = useState<Tip | null>(null);
+  const [loadingTip, setLoadingTip] = useState(false);
+  const [tipError, setTipError] = useState<string | null>(null);
+
+  async function loadTip() {
+    try {
+      setLoadingTip(true);
+      setTipError(null);
+      const data = await getRandomTip();
+      setTip(data);
+    } catch (err) {
+      console.error(err);
+      setTipError("Não foi possível carregar uma dica agora.");
+    } finally {
+      setLoadingTip(false);
+    }
+  }
+
+  useEffect(() => {
+    loadTip();
+  }, []);
+
   return (
     <main className="app-container py-10 space-y-8">
       {/* Hero / resumo do projeto */}
@@ -21,7 +46,10 @@ export default function HomePage() {
               <span className="mr-1">●</span> Backend ativo em nuvem (Render)
             </div>
             <p className="text-xs text-slate-300">
-              API: <code className="text-[#3691E0]">/users, /checkins, /risk, /tips</code>
+              API:{" "}
+              <code className="text-[#3691E0]">
+                /users, /checkins, /risk, /tips, /feedbacks, /config
+              </code>
             </p>
           </div>
         </div>
@@ -134,22 +162,52 @@ export default function HomePage() {
         </article>
       </section>
 
-      {/* Como a interface será evoluída */}
+      {/* Dica real da API */}
       <section className="app-card p-5 md:p-6 space-y-3">
-        <h2 className="app-page-title text-[#3691E0]">
-          Como esta tela vai evoluir
-        </h2>
-        <p className="app-text-muted max-w-3xl">
-          Nesta primeira versão, a Home apresenta os principais recursos
-          disponíveis no backend MoodTracker. Em versões seguintes, estes
-          cards serão conectados diretamente à API, exibindo check-ins reais,
-          score de risco, gráficos e dicas em tempo real.
-        </p>
-        <p className="app-text-muted text-xs">
-          Toda a comunicação será feita via HTTP com o backend Java + Quarkus
-          hospedado no Render, utilizando o endereço configurado em{" "}
-          <code className="text-[#3691E0]">VITE_API_BASE_URL</code>.
-        </p>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="app-page-title text-[#3691E0] text-lg md:text-xl">
+              Dica de bem-estar (ao vivo da API)
+            </h2>
+            <p className="app-text-muted text-xs md:text-sm">
+              Endpoint: <code className="text-[#3691E0]">GET /tips/random</code>
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={loadTip}
+            className="app-primary-btn text-xs md:text-sm"
+            disabled={loadingTip}
+          >
+            {loadingTip ? "Carregando..." : "Gerar nova dica"}
+          </button>
+        </div>
+
+        {tipError && <p className="app-error mt-1">{tipError}</p>}
+
+        <div className="mt-2 border border-[#485561] rounded-xl px-4 py-3 bg-[#252C33]/80">
+          {loadingTip && !tip && (
+            <p className="app-text-muted text-sm">Carregando dica...</p>
+          )}
+
+          {!loadingTip && tip && (
+            <>
+              <h3 className="text-sm font-semibold text-slate-100 mb-1">
+                {tip.title ?? "Dica de hoje"}
+              </h3>
+              <p className="app-text-muted text-sm">
+                {tip.description ?? "Aproveite este momento para cuidar de você."}
+              </p>
+            </>
+          )}
+
+          {!loadingTip && !tip && !tipError && (
+            <p className="app-text-muted text-sm">
+              Nenhuma dica carregada ainda. Clique em “Gerar nova dica”.
+            </p>
+          )}
+        </div>
       </section>
     </main>
   );
