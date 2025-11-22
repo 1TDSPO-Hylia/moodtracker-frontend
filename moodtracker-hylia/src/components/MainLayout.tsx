@@ -1,50 +1,58 @@
-// src/layouts/MainLayout.tsx
-import { Outlet, NavLink } from "react-router-dom";
+import { NavLink } from "react-router-dom";
+import type { ReactNode } from "react";
 import { useTheme } from "../context/ThemeContext";
 
-export default function MainLayout() {
+export default function MainLayout({ children }: { children: ReactNode }) {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className={`app-shell ${theme === "dark" ? "theme-dark" : "theme-light"}`}>
+    <div className="app-shell">
       <header className="app-navbar">
-        <div className="app-container flex items-center justify-between gap-6">
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold">MoodTracker</span>
-            <span className="text-[11px] text-muted-foreground">
-            </span>
-          </div>
-
+        <div className="app-container flex items-center justify-between">
           <nav className="flex items-center gap-4 text-sm">
-            <NavLink to="/" className="hover:underline">
+            <NavLink
+              to="/"
+              className={({ isActive }) =>
+                `hover:underline ${
+                  isActive ? "font-semibold text-[#3691E0]" : ""
+                }`
+              }
+            >
               Home
             </NavLink>
-            <NavLink to="/sobre" className="hover:underline">
+            <NavLink
+              to="/about"
+              className={({ isActive }) =>
+                `hover:underline ${
+                  isActive ? "font-semibold text-[#3691E0]" : ""
+                }`
+              }
+            >
               Sobre / FAQ / Contato
             </NavLink>
-
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="ml-4 app-chip text-xs"
-            >
-              {theme === "dark" ? "Tema claro" : "Tema escuro"}
-            </button>
           </nav>
+
+           
         </div>
       </header>
 
-      <main className="flex-1">
-        <div className="app-container">
-          <Outlet />
-        </div>
-      </main>
+      {/* MAIN CONTENT */}
+      <main className="app-container flex-1">{children}</main>
 
+      {/* FOOTER */}
       <footer className="app-footer">
         <div className="app-footer-inner">
-          <span>MoodTracker – Global Solution FIAP</span>
-          <span>Java + Quarkus · Oracle · React + Vite + Tailwind</span>
+          <span>MoodTracker – Global Solution FIAP 1TDS</span>
+          <span>Backend: Java + Quarkus · Frontend: React + Vite + Tailwind</span>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="app-chip text-xs"
+          >
+            {theme === "dark" ? "Light theme" : "Dark theme"}
+          </button>
         </div>
+        
       </footer>
     </div>
   );

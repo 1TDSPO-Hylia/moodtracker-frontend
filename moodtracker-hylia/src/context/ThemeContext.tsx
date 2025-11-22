@@ -1,3 +1,4 @@
+// src/context/ThemeContext.tsx
 import {
   createContext,
   useContext,
@@ -15,47 +16,47 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
+type ThemeProviderProps = { children: ReactNode };
+
+export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>("dark");
 
-  // Detecta tema do sistema na primeira carga
+  // initial: read localStorage or system preference
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem("mood-theme") as Theme | null;
+    if (stored === "light" || stored === "dark") {
+      setTheme(stored);
+      document.documentElement.classList.toggle("dark", stored === "dark");
+      return;
+    }
 
     const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
+      "(prefers-color-scheme: dark)",
     ).matches;
-
-    setTheme(prefersDark ? "dark" : "light");
+    const initial: Theme = prefersDark ? "dark" : "light";
+    setTheme(initial);
+    document.documentElement.classList.toggle("dark", initial === "dark");
   }, []);
 
-  // (Opcional) sincronizar com mudanças do sistema
+  // whenever theme changes, update <html> and localStorage
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    window.localStorage.setItem("mood-theme", theme);
+  }, [theme]);
 
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const listener = (e: MediaQueryListEvent) => {
-      setTheme(e.matches ? "dark" : "light");
-    };
-    mq.addEventListener("change", listener);
-    return () => mq.removeEventListener("change", listener);
-  }, []);
-
-  const toggleTheme = () => {
-    setTheme((curr) => (curr === "dark" ? "light" : "dark"));
-  };
-
-  const value: ThemeContextValue = { theme, toggleTheme };
+  function toggleTheme() {
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  }
 
   return (
-    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
   );
 }
 
 export function useTheme() {
   const ctx = useContext(ThemeContext);
-  if (!ctx) {
-    throw new Error("useTheme must be used within a ThemeProvider");
-  }
+  if (!ctx) throw new Error("useTheme must be used inside ThemeProvider");
   return ctx;
 }

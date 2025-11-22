@@ -1,9 +1,15 @@
 @import "tailwindcss";
 
+/* Optional: base body color */
+body {
+  @apply bg-slate-50 text-slate-900 dark:bg-[#252C33] dark:text-slate-50;
+}
+
 /* --- LAYOUT GERAL --- */
 
 .app-shell {
-  @apply min-h-screen flex flex-col;
+  @apply min-h-screen flex flex-col bg-slate-50 text-slate-900
+         dark:bg-[#252C33] dark:text-slate-50;
 }
 
 .app-container {
@@ -13,19 +19,23 @@
 /* --- NAVBAR & FOOTER --- */
 
 .app-navbar {
-  @apply h-16 border-b border-[#485561] bg-[#313436] flex items-center;
+  @apply h-16 flex items-center
+         border-b border-slate-200 bg-white
+         dark:border-[#485561] dark:bg-[#313436];
 }
 
 .app-footer {
-  @apply border-t border-[#485561] bg-[#313436] mt-8;
+  @apply border-t border-slate-200 bg-white mt-8
+         dark:border-[#485561] dark:bg-[#313436];
 }
 
 .app-footer-inner {
-  /* não pode usar @apply app-container aqui */
-  @apply max-w-6xl mx-auto px-4 py-4 text-xs text-slate-300 flex justify-between;
+  @apply max-w-6xl mx-auto px-4 py-4 text-xs
+         text-slate-500 flex justify-between
+         dark:text-slate-300;
 }
 
-/* --- TIPOGRAFIA / TEXTOS --- */
+/* --- TYPOGRAPHY --- */
 
 .app-page-title {
   @apply text-2xl md:text-3xl font-semibold tracking-tight;
@@ -36,92 +46,103 @@
 }
 
 .app-text-muted {
-  @apply text-sm md:text-base text-slate-300;
+  @apply text-sm md:text-base text-slate-600 dark:text-slate-300;
 }
 
-/* --- CHIPS / NAV INTERNA --- */
+/* --- CHIPS / INTERNAL NAV --- */
 
 .app-chip {
-  @apply px-3 py-1 rounded-full border border-[#485561]
-    bg-[#313436] text-slate-100
-    hover:bg-[#4A84B6] transition-colors text-sm;
+  @apply px-3 py-1 rounded-full border
+         border-slate-200 bg-white text-slate-800
+         hover:bg-slate-100 transition-colors text-sm
+         dark:border-[#485561] dark:bg-[#313436] dark:text-slate-100
+         dark:hover:bg-[#4A84B6];
 }
 
 /* --- FAQ --- */
 
 .app-faq-item {
-  @apply border border-[#485561] rounded-xl overflow-hidden bg-[#313436]/80;
+  @apply border rounded-xl overflow-hidden
+         border-slate-200 bg-white
+         dark:border-[#485561] dark:bg-[#313436]/80;
 }
 
 .app-faq-question {
   @apply w-full text-left px-4 py-3 text-sm md:text-base font-medium
-    flex justify-between items-center;
+         flex justify-between items-center;
 }
 
 .app-faq-question-open {
-  @apply bg-[#485561];
+  @apply bg-slate-100 dark:bg-[#485561];
 }
 
 .app-faq-answer {
-  @apply px-4 text-sm md:text-base text-slate-200;
+  @apply px-4 text-sm md:text-base
+         text-slate-700 dark:text-slate-200;
 }
 
-/* --- FORM CONTATO --- */
+/* --- FORMS (CONTACT / HOME) --- */
 
 .app-form-card {
-  @apply space-y-4 rounded-2xl border border-[#485561]
-    bg-[#313436]/90 p-4 md:p-6 shadow-sm;
+  @apply space-y-4 rounded-2xl border
+         border-slate-200 bg-white p-4 md:p-6 shadow-sm
+         dark:border-[#485561] dark:bg-[#313436]/90;
 }
 
 .app-input {
-  @apply w-full rounded-md border border-[#133b5f] bg-[#252C33]
-    px-3 py-2 text-sm text-slate-50
-    outline-none focus:ring-2 focus:ring-[#3691E0];
+  @apply w-full rounded-md border px-3 py-2 text-sm outline-none
+         border-slate-300 bg-white text-slate-900
+         focus:ring-2 focus:ring-[#3691E0]
+         dark:border-[#133b5f] dark:bg-[#252C33] dark:text-slate-50;
 }
 
 .app-textarea {
-  @apply w-full rounded-md border border-[#1c3f5f] bg-[#252C33]
-    px-3 py-2 text-sm text-slate-50
-    outline-none focus:ring-2 focus:ring-[#3691E0]
-    min-h-[100px] resize-y;
+  @apply w-full min-h-[100px] rounded-md border px-3 py-2 text-sm outline-none resize-y
+         border-slate-300 bg-white text-slate-900
+         focus:ring-2 focus:ring-[#3691E0]
+         dark:border-[#1c3f5f] dark:bg-[#252C33] dark:text-slate-50;
 }
 
 .app-error {
-  @apply text-xs text-red-400;
+  @apply text-xs text-red-500;
 }
 
 .app-success {
-  @apply mt-3 text-sm text-emerald-300 bg-emerald-900/40 border border-emerald-500 rounded-md px-3 py-2;
+  @apply mt-3 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2
+         dark:text-emerald-300 dark:bg-emerald-900/40 dark:border-emerald-500;
 }
 
-/* --- BOTÃO PRIMÁRIO --- */
+/* --- PRIMARY BUTTON --- */
 
 .app-primary-btn {
   @apply inline-flex items-center justify-center rounded-md border border-transparent
-    px-4 py-2 text-sm font-medium
-    bg-[#3691E0] text-white hover:bg-[#4A84B6] transition-colors;
+         px-4 py-2 text-sm font-medium
+         bg-[#3691E0] text-white hover:bg-[#4A84B6] transition-colors;
 }
 
-/* --- CARDS DE INTEGRANTES --- */
+/* --- MEMBER CARDS --- */
 
 .app-member-card {
-  @apply border border-[#485561] rounded-2xl p-4
-    bg-[#313436]/90 shadow-sm
-    flex flex-col items-center text-center space-y-3;
+  @apply border rounded-2xl p-4 shadow-sm flex flex-col items-center text-center space-y-3
+         border-slate-200 bg-white
+         dark:border-[#485561] dark:bg-[#313436]/90;
 }
 
 .app-member-avatar {
-  @apply w-24 h-24 rounded-full overflow-hidden border border-[#485561];
+  @apply w-24 h-24 rounded-full overflow-hidden border
+         border-slate-200 dark:border-[#485561];
 }
 
 .app-member-links {
   @apply flex gap-3 text-xs;
 }
 
-/* --- CARDS GERAIS DA HOME (DASHBOARD) --- */
+/* --- DASHBOARD CARDS --- */
 
 .app-card {
-  @apply rounded-2xl border border-[#485561] bg-[#313436]/90 shadow-lg;
+  @apply rounded-2xl border bg-white shadow-lg
+         border-slate-200
+         dark:border-[#485561] dark:bg-[#313436]/90;
 }
 
 .app-card-header {
@@ -129,149 +150,16 @@
 }
 
 .app-card-title {
-  @apply text-sm font-semibold text-slate-100;
+  @apply text-sm font-semibold text-slate-900 dark:text-slate-100;
 }
 
 .app-card-subtitle {
-  @apply text-xs text-slate-300;
+  @apply text-xs text-slate-500 dark:text-slate-300;
 }
 
 .app-pill {
   @apply inline-flex items-center rounded-full px-2 py-0.5
-    text-[11px] font-medium bg-[#252C33] text-slate-200 border border-[#485561];
-}
-
-/* ============================
-   THEMES (Escuro / Claro)
-   Controlados via ThemeContext
-   .theme-dark / .theme-light vem do MainLayout
-============================ */
-
-/* ============================
-   THEMES (Escuro / Claro)
-   Controlados via ThemeContext
-============================ */
-
-/* Fundo e texto base */
-.theme-dark .app-shell {
-  @apply bg-[#252C33] text-slate-50;
-}
-
-.theme-light .app-shell {
-  @apply bg-slate-50 text-slate-900;
-}
-
-/* Navbar & footer */
-.theme-dark .app-navbar,
-.theme-dark .app-footer {
-  @apply bg-[#313436] border-[#485561] text-slate-50;
-}
-
-.theme-light .app-navbar,
-.theme-light .app-footer {
-  @apply bg-white border-slate-200 text-slate-900;
-}
-
-/* Container interno do footer já existe como app-footer-inner */
-
-/* Cards gerais */
-.theme-dark .app-card {
-  @apply bg-[#313436]/90 border-[#485561];
-}
-
-.theme-light .app-card {
-  @apply bg-white border-slate-200;
-}
-
-/* Títulos */
-.theme-dark .app-main-title,
-.theme-dark .app-page-title {
-  @apply text-slate-50;
-}
-
-.theme-light .app-main-title,
-.theme-light .app-page-title {
-  @apply text-slate-900;
-}
-
-/* Subtítulos, textos suaves */
-.theme-dark .app-card-subtitle {
-  @apply text-slate-300;
-}
-
-.theme-light .app-card-subtitle {
-  @apply text-slate-600;
-}
-
-.theme-dark .app-text-muted {
-  @apply text-sm md:text-base text-slate-300;
-}
-
-.theme-light .app-text-muted {
-  @apply text-sm md:text-base text-slate-700;
-}
-
-/* Classe util que você usa no AboutPage: text-muted-foreground */
-.text-muted-foreground {
-  @apply text-slate-300;
-}
-
-.theme-light .text-muted-foreground {
-  @apply text-slate-700;
-}
-
-/* Chips / navegação interna */
-.theme-dark .app-chip {
-  @apply bg-[#313436] border-[#485561] text-slate-100 hover:bg-[#4A84B6];
-}
-
-.theme-light .app-chip {
-  @apply bg-slate-100 border-slate-300 text-slate-900 hover:bg-slate-200;
-}
-
-/* Botão primário */
-.theme-dark .app-primary-btn {
-  @apply bg-[#3691E0] text-white hover:bg-[#4A84B6];
-}
-
-.theme-light .app-primary-btn {
-  @apply bg-[#3691E0] text-white hover:bg-[#4A84B6];
-}
-
-/* Inputs / textareas */
-.theme-dark .app-input,
-.theme-dark .app-textarea {
-  @apply bg-[#252C33] border-[#133b5f] text-slate-50;
-}
-
-.theme-light .app-input,
-.theme-light .app-textarea {
-  @apply bg-white border-slate-300 text-slate-900;
-}
-
-/* FAQ */
-.theme-dark .app-faq-item {
-  @apply bg-[#313436]/80 border-[#485561];
-}
-
-.theme-light .app-faq-item {
-  @apply bg-white border-slate-200;
-}
-
-/* Card de “soft surface” se você usar algo assim */
-.app-soft-surface {
-  @apply rounded-xl border border-[#485561] bg-[#313436]/90;
-}
-
-.theme-light .app-soft-surface {
-  @apply bg-slate-50 border-slate-200;
-}
-
-/* Cards de integrantes */
-.theme-dark .app-member-card {
-  @apply bg-[#313436]/90 border-[#485561];
-}
-
-.theme-light .app-member-card {
-  @apply bg-white border-slate-200;
+         text-[11px] font-medium
+         bg-slate-100 text-slate-700 border border-slate-200
+         dark:bg-[#252C33] dark:text-slate-200 dark:border-[#485561];
 }
