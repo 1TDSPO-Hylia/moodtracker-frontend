@@ -140,3 +140,79 @@
   @apply inline-flex items-center rounded-full px-2 py-0.5
     text-[11px] font-medium bg-[#252C33] text-slate-200 border border-[#485561];
 }
+
+/* ============================
+   THEMES (Escuro / Claro)
+   Controlados via ThemeContext
+   .theme-dark / .theme-light vem do MainLayout
+============================ */
+
+.theme-dark .app-shell {
+  @apply bg-[#252C33] text-slate-50;
+}
+
+.theme-light .app-shell {
+  @apply bg-slate-50 text-slate-900;
+}
+
+/* Navbar & footer */
+
+.theme-dark .app-navbar,
+.theme-dark .app-footer {
+  @apply bg-[#313436] border-[#485561];
+}
+
+.theme-light .app-navbar,
+.theme-light .app-footer {
+  @apply bg-slate-100 border-slate-300 text-slate-900;
+}
+
+/* Cards */
+
+.theme-dark .app-card {
+  @apply bg-[#313436]/90 border-[#485561];
+}
+
+.theme-light .app-card {
+  @apply bg-white border-slate-200;
+}
+
+/* Chips / botões */
+
+.theme-dark .app-chip {
+  @apply bg-[#313436] border-[#485561] text-slate-100 hover:bg-[#4A84B6];
+}
+
+.theme-light .app-chip {
+  @apply bg-slate-100 border-slate-300 text-slate-900 hover:bg-slate-200;
+}
+
+.theme-dark .app-primary-btn {
+  @apply bg-[#3691E0] text-white hover:bg-[#4A84B6];
+}
+
+.theme-light .app-primary-btn {
+  @apply bg-[#3691E0] text-white hover:bg-[#4A84B6];
+}
+
+/* Inputs / textareas */
+
+.theme-dark .app-input,
+.theme-dark .app-textarea {
+  @apply bg-[#252C33] border-[#133b5f] text-slate-50;
+}
+
+.theme-light .app-input,
+.theme-light .app-textarea {
+  @apply bg-white border-slate-300 text-slate-900;
+}
+
+/* FAQ cards */
+
+.theme-dark .app-faq-item {
+  @apply bg-[#313436]/80 border-[#485561];
+}
+
+.theme-light .app-faq-item {
+  @apply bg-white border-slate-200;
+}
