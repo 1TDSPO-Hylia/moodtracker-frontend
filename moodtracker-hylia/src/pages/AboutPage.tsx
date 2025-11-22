@@ -82,7 +82,7 @@ export default function AboutPage() {
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
-    document.title = "Sobre – MoodTracker";
+    document.title = " MoodTracker – Sobre";
   }, []);
 
   const toggleFAQ = (i: number) => {
