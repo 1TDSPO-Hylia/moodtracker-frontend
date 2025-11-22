@@ -27,7 +27,7 @@ export default function Navbar() {
               `${linkBase} ${isActive ? "underline" : ""}`
             }
           >
-            Sobre / FAQ / Contato / Integrantes
+            Sobre
           </NavLink>
         </div>
       </nav>
