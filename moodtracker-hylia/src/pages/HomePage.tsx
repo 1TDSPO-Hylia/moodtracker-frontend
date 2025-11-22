@@ -1,5 +1,5 @@
 // src/pages/HomePage.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent, } from "react";
 import {
   getRandomTip,
   getUserById,
@@ -16,29 +16,28 @@ import {
 
 const DEMO_USER_ID = 8;
 
-
-
 export default function HomePage() {
-  // --- estado para DICA ---
+  // --- DICA ---
   const [tip, setTip] = useState<Tip | null>(null);
   const [loadingTip, setLoadingTip] = useState(false);
   const [tipError, setTipError] = useState<string | null>(null);
 
-  // --- estado para PAINEL DO USUÁRIO 1 ---
+  // --- PAINEL DEMO (usuário) ---
   const [user, setUser] = useState<User | null>(null);
   const [checkins, setCheckins] = useState<Checkin[]>([]);
   const [config, setConfig] = useState<Config | null>(null);
   const [demoError, setDemoError] = useState<string | null>(null);
   const [loadingDemo, setLoadingDemo] = useState(false);
 
+  // --- FEEDBACKS ---
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-const [loadingFeedbacks, setLoadingFeedbacks] = useState(false);
-const [feedbackError, setFeedbackError] = useState<string | null>(null);
+  const [loadingFeedbacks, setLoadingFeedbacks] = useState(false);
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
 
-
-const [rating, setRating] = useState<number | null>(null);
-const [comment, setComment] = useState("");
-const [sendingFeedback, setSendingFeedback] = useState(false);
+  // formulário de novo feedback
+  const [rating, setRating] = useState<number | null>(null);
+  const [comment, setComment] = useState("");
+  const [sendingFeedback, setSendingFeedback] = useState(false);
 
   async function loadTip() {
     try {
@@ -54,113 +53,108 @@ const [sendingFeedback, setSendingFeedback] = useState(false);
     }
   }
 
-async function loadDemoUserData() {
-  setLoadingDemo(true);
-  setDemoError(null);
+  async function loadDemoUserData() {
+    setLoadingDemo(true);
+    setDemoError(null);
 
-  let hadError = false;
+    let hadError = false;
 
-  // USER
-  try {
-    const u = await getUserById(DEMO_USER_ID);
-    setUser(u);
-  } catch (err) {
-    console.error("Erro ao carregar usuário demo:", err);
-    hadError = true;
+    // USER
+    try {
+      const u = await getUserById(DEMO_USER_ID);
+      setUser(u);
+    } catch (err) {
+      console.error("Erro ao carregar usuário demo:", err);
+      hadError = true;
+    }
+
+    // CHECKINS
+    try {
+      const cs = await getUserCheckins(DEMO_USER_ID);
+      setCheckins(cs);
+    } catch (err) {
+      console.error("Erro ao carregar check-ins demo:", err);
+      hadError = true;
+    }
+
+    // CONFIG
+    try {
+      const cfg = await getUserConfig(DEMO_USER_ID);
+      setConfig(cfg);
+    } catch (err) {
+      console.error("Erro ao carregar config demo:", err);
+      hadError = true;
+    }
+
+    if (hadError) {
+      setDemoError(
+        "Alguns dados de demonstração não puderam ser carregados, mas o painel exibe o que foi obtido com sucesso."
+      );
+    }
+
+    setLoadingDemo(false);
   }
 
-
-
-  // CHECKINS
-  try {
-    const cs = await getUserCheckins(DEMO_USER_ID);
-    setCheckins(cs);
-  } catch (err) {
-    console.error("Erro ao carregar check-ins demo:", err);
-    hadError = true;
+  async function loadFeedbacks() {
+    try {
+      setLoadingFeedbacks(true);
+      setFeedbackError(null);
+      const list = await getUserFeedback(DEMO_USER_ID);
+      setFeedbacks(list);
+    } catch (err) {
+      console.error("Erro ao carregar feedbacks:", err);
+      setFeedbackError("Não foi possível carregar os feedbacks deste usuário.");
+    } finally {
+      setLoadingFeedbacks(false);
+    }
   }
 
-  // CONFIG
-  try {
-    const cfg = await getUserConfig(DEMO_USER_ID);
-    setConfig(cfg);
-  } catch (err) {
-    console.error("Erro ao carregar config demo:", err);
-    hadError = true;
+  async function handleSubmitFeedback(e: FormEvent) {
+    e.preventDefault();
+    if (rating == null) {
+      setFeedbackError("Escolha uma nota de 1 a 5 antes de enviar.");
+      return;
+    }
+    if (!comment.trim()) {
+      setFeedbackError("Escreva um comentário antes de enviar.");
+      return;
+    }
+
+    try {
+      setSendingFeedback(true);
+      setFeedbackError(null);
+
+      await sendFeedback({
+        usuarioId: DEMO_USER_ID,
+        avaliacao: rating,
+        comentario: comment.trim(),
+      });
+
+      setComment("");
+      setRating(null);
+
+      await loadFeedbacks();
+    } catch (err) {
+      console.error("Erro ao enviar feedback:", err);
+      setFeedbackError("Não foi possível enviar o feedback agora.");
+    } finally {
+      setSendingFeedback(false);
+    }
   }
-
-  if (hadError) {
-    setDemoError(
-      "Alguns dados de demonstração não puderam ser carregados, mas o painel exibe o que foi obtido com sucesso."
-    );
-  }
-
-  setLoadingDemo(false);
-}
-
 
   useEffect(() => {
-  loadTip();
-  loadDemoUserData();
-  loadFeedbacks();
-}, []);
+    loadTip();
+    loadDemoUserData();
+    loadFeedbacks();
+  }, []);
 
-  // helper pra formatar data de check-in
+  // helper para data de check-in
   function formatDate(dateStr: string | undefined) {
     if (!dateStr) return "-";
-    // tenta lidar tanto com ISO quanto com '2024-11-21T00:00:00' etc.
     const d = new Date(dateStr);
     if (Number.isNaN(d.getTime())) return dateStr;
     return d.toLocaleDateString("pt-BR");
   }
-
-  async function loadFeedbacks() {
-  try {
-    setLoadingFeedbacks(true);
-    setFeedbackError(null);
-    const list = await getUserFeedback(DEMO_USER_ID);
-    setFeedbacks(list);
-  } catch (err) {
-    console.error("Erro ao carregar feedbacks:", err);
-    setFeedbackError("Não foi possível carregar os feedbacks deste usuário.");
-  } finally {
-    setLoadingFeedbacks(false);
-  }
-}
-
-async function handleSubmitFeedback(e: React.FormEvent) {
-  e.preventDefault();
-  if (rating == null) {
-    setFeedbackError("Escolha uma nota de 1 a 5 antes de enviar.");
-    return;
-  }
-  if (!comment.trim()) {
-    setFeedbackError("Escreva um comentário antes de enviar.");
-    return;
-  }
-
-  try {
-    setSendingFeedback(true);
-    setFeedbackError(null);
-
-    await sendFeedback({
-  usuarioId: DEMO_USER_ID,
-  avaliacao: rating,
-  comentario: comment.trim(),
-});
-
-    setComment("");
-    setRating(null);
-
-    // recarrega a lista depois de enviar
-    await loadFeedbacks();
-  } catch (err) {
-    console.error("Erro ao enviar feedback:", err);
-    setFeedbackError("Não foi possível enviar o feedback agora.");
-  } finally {
-    setSendingFeedback(false);
-  }
-}
 
   return (
     <main className="app-container py-10 space-y-8">
@@ -251,7 +245,9 @@ async function handleSubmitFeedback(e: React.FormEvent) {
         <article className="app-card p-5 flex flex-col justify-between">
           <header className="app-card-header">
             <div>
-              <h2 className="app-card-title
+              <h2 className="app-card-title">Análise com IA</h2>
+              <p className="app-card-subtitle">
+                Score de risco e resumo interpretativo.
               </p>
             </div>
             <span className="app-pill">
@@ -262,7 +258,7 @@ async function handleSubmitFeedback(e: React.FormEvent) {
           <ul className="mt-2 space-y-1 text-xs text-slate-300">
             <li>• Envia o check-in para a API da OpenAI.</li>
             <li>• Recebe um score de risco de burnout.</li>
-            <li>• Retorna um texto em linguagem natural explicando o risco.</li>
+            <li>• Retorna um texto explicando o risco.</li>
           </ul>
 
           <button className="mt-4 app-primary-btn w-full justify-center">
@@ -302,10 +298,10 @@ async function handleSubmitFeedback(e: React.FormEvent) {
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="app-page-title text-[#3691E0] text-lg md:text-xl">
-              Dica de bem-estar
+              Dica de bem-estar (ao vivo da API)
             </h2>
             <p className="app-text-muted text-xs md:text-sm">
-              
+              Endpoint: <code className="text-[#3691E0]">GET /tips/random</code>
             </p>
           </div>
 
@@ -329,11 +325,11 @@ async function handleSubmitFeedback(e: React.FormEvent) {
           {!loadingTip && tip && (
             <>
               <h3 className="text-sm font-semibold text-slate-100 mb-1">
-                {/* usando campos em pt-BR, como vem do backend */}
-                { (tip as any).titulo ?? "Dica de hoje" }
+                {(tip as any).titulo ?? "Dica de hoje"}
               </h3>
               <p className="app-text-muted text-sm">
-                { (tip as any).descricao ?? "Aproveite este momento para cuidar de você." }
+                {(tip as any).descricao ??
+                  "Aproveite este momento para cuidar de você."}
               </p>
             </>
           )}
@@ -346,14 +342,15 @@ async function handleSubmitFeedback(e: React.FormEvent) {
         </div>
       </section>
 
+      {/* Painel de demonstração do usuário */}
       <section className="app-card p-5 md:p-6 space-y-4">
         <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
             <h2 className="app-page-title text-lg md:text-xl text-[#3691E0]">
-              Painel de Demonstração – Usuário 1
+              Painel de Demonstração – Usuário {DEMO_USER_ID}
             </h2>
             <p className="app-text-muted text-xs md:text-sm">
-              Integração real com os endpoints de usuários, check-ins, risco e
+              Integração real com os endpoints de usuários, check-ins e
               configurações.
             </p>
           </div>
@@ -371,7 +368,9 @@ async function handleSubmitFeedback(e: React.FormEvent) {
         {demoError && <p className="app-error">{demoError}</p>}
 
         <div className="grid gap-4 md:grid-cols-[minmax(0,1.1fr),minmax(0,1fr)]">
+          {/* Coluna esquerda: usuário + check-ins */}
           <div className="space-y-3">
+            {/* Card usuário */}
             <div className="border border-[#485561] rounded-xl p-3 bg-[#252C33]/80 space-y-1">
               <p className="text-xs text-slate-400 mb-1">
                 GET /users/{DEMO_USER_ID}
@@ -379,7 +378,9 @@ async function handleSubmitFeedback(e: React.FormEvent) {
               {user ? (
                 <>
                   <p className="text-sm font-semibold text-slate-100">
-                    { (user as any).nome ?? (user as any).name ?? "Usuário 1" }
+                    {(user as any).nome ??
+                      (user as any).name ??
+                      `Usuário ${DEMO_USER_ID}`}
                   </p>
                   <p className="text-xs text-slate-300">
                     {(user as any).email}
@@ -426,10 +427,8 @@ async function handleSubmitFeedback(e: React.FormEvent) {
             </div>
           </div>
 
-          {/* Coluna direita: risco + config */}
+          {/* Coluna direita: config */}
           <div className="space-y-3">
-
-
             {/* Card configurações */}
             <div className="border border-[#485561] rounded-xl p-3 bg-[#252C33]/80 space-y-1">
               <p className="text-xs text-slate-400 mb-1">
@@ -474,121 +473,115 @@ async function handleSubmitFeedback(e: React.FormEvent) {
       </section>
 
       {/* FEEDBACKS DO USUÁRIO DEMO */}
-<section className="app-card p-5 md:p-6 space-y-4">
-  <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-    <div>
-      <h2 className="app-page-title text-lg md:text-xl text-[#3691E0]">
-        Feedbacks do Usuário {DEMO_USER_ID}
-      </h2>
-      <p className="app-text-muted text-xs md:text-sm">
-        Integração com os endpoints GET /feedbacks/users/{DEMO_USER_ID} e
-        POST /feedbacks.
-      </p>
-    </div>
-    <button
-      type="button"
-      onClick={loadFeedbacks}
-      className="app-primary-btn text-xs md:text-sm"
-      disabled={loadingFeedbacks}
-    >
-      {loadingFeedbacks ? "Atualizando..." : "Recarregar feedbacks"}
-    </button>
-  </header>
+      <section className="app-card p-5 md:p-6 space-y-4">
+        <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h2 className="app-page-title text-lg md:text-xl text-[#3691E0]">
+              Feedbacks do Usuário {DEMO_USER_ID}
+            </h2>
+            <p className="app-text-muted text-xs md:text-sm">
+              Integração com os endpoints GET /feedbacks/users/{DEMO_USER_ID} e
+              POST /feedbacks.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={loadFeedbacks}
+            className="app-primary-btn text-xs md:text-sm"
+            disabled={loadingFeedbacks}
+          >
+            {loadingFeedbacks ? "Atualizando..." : "Recarregar feedbacks"}
+          </button>
+        </header>
 
-  {feedbackError && <p className="app-error">{feedbackError}</p>}
+        {feedbackError && <p className="app-error">{feedbackError}</p>}
 
-  <div className="grid gap-4 md:grid-cols-[minmax(0,1.1fr),minmax(0,0.9fr)]">
-    {/* Lista de feedbacks */}
-    <div className="border border-[#485561] rounded-xl p-3 bg-[#252C33]/80">
-      <p className="text-xs text-slate-400 mb-2">
-        GET /feedbacks/users/{DEMO_USER_ID}
-      </p>
+        <div className="grid gap-4 md:grid-cols-[minmax(0,1.1fr),minmax(0,0.9fr)]">
+          {/* Lista de feedbacks */}
+          <div className="border border-[#485561] rounded-xl p-3 bg-[#252C33]/80">
+            <p className="text-xs text-slate-400 mb-2">
+              GET /feedbacks/users/{DEMO_USER_ID}
+            </p>
 
-      {loadingFeedbacks && feedbacks.length === 0 ? (
-        <p className="app-text-muted text-xs">Carregando feedbacks...</p>
-      ) : feedbacks.length === 0 ? (
-        <p className="app-text-muted text-xs">
-          Nenhum feedback registrado ainda para este usuário.
-        </p>
-      ) : (
-        <div className="space-y-2 max-h-56 overflow-auto pr-1">
-          {feedbacks.map((fb) => (
-            <div
-              key={fb.id}
-              className="text-xs border border-[#485561] rounded-lg px-2 py-1"
-            >
-              <p className="text-slate-100">
-  Nota:{" "}
-  <span className="font-semibold">
-    {(fb as any).avaliacao ??
-     (fb as any).rating ??
-     (fb as any).nota ??
-     "–"}
-  </span>
-</p>
-<p className="text-slate-300 mt-0.5">
-  {(fb as any).comentario ??
-   (fb as any).comment ??
-   ""}
-</p>
+            {loadingFeedbacks && feedbacks.length === 0 ? (
+              <p className="app-text-muted text-xs">Carregando feedbacks...</p>
+            ) : feedbacks.length === 0 ? (
+              <p className="app-text-muted text-xs">
+                Nenhum feedback registrado ainda para este usuário.
+              </p>
+            ) : (
+              <div className="space-y-2 max-h-56 overflow-auto pr-1">
+                {feedbacks.map((fb) => (
+                  <div
+                    key={fb.id}
+                    className="text-xs border border-[#485561] rounded-lg px-2 py-1"
+                  >
+                    <p className="text-slate-100">
+                      Nota:{" "}
+                      <span className="font-semibold">
+                        {(fb as any).avaliacao ??
+                          (fb as any).rating ??
+                          (fb as any).nota ??
+                          "–"}
+                      </span>
+                    </p>
+                    <p className="text-slate-300 mt-0.5">
+                      {(fb as any).comentario ??
+                        (fb as any).comment ??
+                        ""}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Formulário de novo feedback */}
+          <form
+            onSubmit={handleSubmitFeedback}
+            className="border border-[#485561] rounded-xl p-3 bg-[#252C33]/80 space-y-3"
+          >
+            <p className="text-xs text-slate-400 mb-1">POST /feedbacks</p>
+
+            <div className="space-y-1">
+              <label className="text-xs text-slate-200">Nota (1 a 5)</label>
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    className={`px-2 py-1 rounded-md text-xs border ${
+                      rating === n
+                        ? "bg-[#3691E0] border-[#3691E0] text-white"
+                        : "bg-transparent border-[#485561] text-slate-200 hover:bg-[#485561]"
+                    }`}
+                    onClick={() => setRating(n)}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
-      )}
-    </div>
 
-    {/* Formulário de novo feedback */}
-    <form
-      onSubmit={handleSubmitFeedback}
-      className="border border-[#485561] rounded-xl p-3 bg-[#252C33]/80 space-y-3"
-    >
-      <p className="text-xs text-slate-400 mb-1">
-        POST /feedbacks
-      </p>
+            <div className="space-y-1">
+              <label className="text-xs text-slate-200">Comentário</label>
+              <textarea
+                className="w-full min-h-[70px] rounded-md border border-[#485561] bg-[#252C33] px-3 py-2 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-[#3691E0] resize-y"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+              />
+            </div>
 
-      <div className="space-y-1">
-        <label className="text-xs text-slate-200">
-          Nota (1 a 5)
-        </label>
-        <div className="flex gap-2">
-          {[1, 2, 3, 4, 5].map((n) => (
             <button
-              key={n}
-              type="button"
-              className={`px-2 py-1 rounded-md text-xs border ${
-                rating === n
-                  ? "bg-[#3691E0] border-[#3691E0] text-white"
-                  : "bg-transparent border-[#485561] text-slate-200 hover:bg-[#485561]"
-              }`}
-              onClick={() => setRating(n)}
+              type="submit"
+              className="app-primary-btn text-xs md:text-sm w-full justify-center"
+              disabled={sendingFeedback}
             >
-              {n}
+              {sendingFeedback ? "Enviando..." : "Enviar feedback"}
             </button>
-          ))}
+          </form>
         </div>
-      </div>
-
-      <div className="space-y-1">
-        <label className="text-xs text-slate-200">
-          Comentário
-        </label>
-        <textarea
-          className="w-full min-h-[70px] rounded-md border border-[#485561] bg-[#252C33] px-3 py-2 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-[#3691E0] resize-vertical"
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-        />
-      </div>
-
-      <button
-        type="submit"
-        className="app-primary-btn text-xs md:text-sm w-full justify-center"
-        disabled={sendingFeedback}
-      >
-        {sendingFeedback ? "Enviando..." : "Enviar feedback"}
-      </button>
-    </form>
-  </div>
-</section>
+      </section>
     </main>
   );
 }
