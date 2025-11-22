@@ -59,9 +59,10 @@ export function getRandomTip(): Promise<Tip> {
 ============================ */
 
 export type User = {
-  id: number;
-  name: string;
-  email: string;
+  id?: number;
+  idUsuario?: number;
+  nome?: string;
+  email?: string;
 };
 
 export function getUsers(): Promise<User[]> {
@@ -72,11 +73,13 @@ export function getUserById(id: number): Promise<User> {
   return request<User>(`/users/${id}`);
 }
 
-export function createUser(data: {
-  name: string;
+export type NewUserInput = {
+  nome: string;
   email: string;
-  password: string;
-}): Promise<User> {
+  senha: string;
+};
+
+export function createUser(data: NewUserInput): Promise<User> {
   return request<User>("/users", {
     method: "POST",
     body: JSON.stringify(data),

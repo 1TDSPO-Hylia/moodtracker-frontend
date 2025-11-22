@@ -1,8 +1,9 @@
 // src/pages/HomePage.tsx
-import { useEffect, useState, type FormEvent, } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   getRandomTip,
   getUserById,
+  createUser,
   getUserCheckins,
   getUserConfig,
   getUserFeedback,
@@ -34,10 +35,20 @@ export default function HomePage() {
   const [loadingFeedbacks, setLoadingFeedbacks] = useState(false);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
 
+  // --- CADASTRO ---
+  const [regName, setRegName] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regLoading, setRegLoading] = useState(false);
+  const [regError, setRegError] = useState<string | null>(null);
+  const [regSuccess, setRegSuccess] = useState<string | null>(null);
+
   // formulário de novo feedback
   const [rating, setRating] = useState<number | null>(null);
   const [comment, setComment] = useState("");
   const [sendingFeedback, setSendingFeedback] = useState(false);
+
+  // --- FUNÇÕES ---
 
   async function loadTip() {
     try {
@@ -132,13 +143,49 @@ export default function HomePage() {
 
       setComment("");
       setRating(null);
-
       await loadFeedbacks();
     } catch (err) {
       console.error("Erro ao enviar feedback:", err);
       setFeedbackError("Não foi possível enviar o feedback agora.");
     } finally {
       setSendingFeedback(false);
+    }
+  }
+
+  async function handleRegister(e: FormEvent) {
+    e.preventDefault();
+    setRegError(null);
+    setRegSuccess(null);
+
+    if (!regName.trim() || !regEmail.trim() || !regPassword.trim()) {
+      setRegError("Preencha nome, email e senha.");
+      return;
+    }
+
+    try {
+      setRegLoading(true);
+      const created = await createUser({
+        nome: regName.trim(),
+        email: regEmail.trim(),
+        senha: regPassword.trim(),
+      });
+
+      const id =
+        (created as any).idUsuario ??
+        (created as any).id ??
+        "desconhecido";
+
+      setRegSuccess(
+        `Usuário criado com sucesso (ID: ${id}). Você já pode usar esse usuário na API para check-ins, análises e feedbacks.`
+      );
+      setRegName("");
+      setRegEmail("");
+      setRegPassword("");
+    } catch (err) {
+      console.error("Erro ao cadastrar usuário:", err);
+      setRegError("Não foi possível cadastrar o usuário agora.");
+    } finally {
+      setRegLoading(false);
     }
   }
 
@@ -156,6 +203,7 @@ export default function HomePage() {
     return d.toLocaleDateString("pt-BR");
   }
 
+  // --- JSX ---
   return (
     <main className="app-container py-10 space-y-8">
       {/* Hero / resumo do projeto */}
@@ -214,6 +262,77 @@ export default function HomePage() {
             </p>
           </div>
         </div>
+      </section>
+
+      {/* Cadastro rápido de usuário */}
+      <section className="app-card p-5 md:p-6 space-y-4">
+        <header>
+          <h2 className="app-page-title text-lg md:text-xl text-[#3691E0]">
+            Comece agora – Cadastro de Usuário
+          </h2>
+          <p className="app-text-muted text-xs md:text-sm mt-1 max-w-2xl">
+            Este formulário cria um novo usuário na API MoodTracker via{" "}
+            <code className="text-[#3691E0]">POST /users</code>. Ele pode ser
+            usado depois para registrar check-ins, chamar a análise por IA e
+            enviar feedbacks.
+          </p>
+        </header>
+
+        <form
+          onSubmit={handleRegister}
+          className="grid gap-3 md:grid-cols-[minmax(0,1.2fr),minmax(0,0.8fr)] md:items-end"
+        >
+          <div className="space-y-2">
+            <div className="grid gap-2 md:grid-cols-2">
+              <div className="space-y-1">
+                <label className="text-xs text-slate-200">Nome</label>
+                <input
+                  type="text"
+                  className="w-full rounded-md border border-[#485561] bg-[#252C33] px-3 py-2 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-[#3691E0]"
+                  value={regName}
+                  onChange={(e) => setRegName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-slate-200">Email</label>
+                <input
+                  type="email"
+                  className="w-full rounded-md border border-[#485561] bg-[#252C33] px-3 py-2 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-[#3691E0]"
+                  value={regEmail}
+                  onChange={(e) => setRegEmail(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1 md:max-w-xs">
+              <label className="text-xs text-slate-200">Senha</label>
+              <input
+                type="password"
+                className="w-full rounded-md border border-[#485561] bg-[#252C33] px-3 py-2 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-[#3691E0]"
+                value={regPassword}
+                onChange={(e) => setRegPassword(e.target.value)}
+              />
+              <p className="app-text-muted text-[11px] mt-1">
+                A senha é usada apenas para fins acadêmicos nesta demo.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <button
+              type="submit"
+              className="app-primary-btn text-xs md:text-sm w-full justify-center"
+              disabled={regLoading}
+            >
+              {regLoading ? "Cadastrando..." : "Criar usuário na API"}
+            </button>
+
+            {regError && <p className="app-error text-xs">{regError}</p>}
+            {regSuccess && (
+              <p className="text-[11px] text-emerald-300">{regSuccess}</p>
+            )}
+          </div>
+        </form>
       </section>
 
       {/* Cards principais do “app” */}
@@ -298,11 +417,8 @@ export default function HomePage() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="app-page-title text-[#3691E0] text-lg md:text-xl">
-              Dica de bem-estar (ao vivo da API)
+              Dica de bem-estar
             </h2>
-            <p className="app-text-muted text-xs md:text-sm">
-              Endpoint: <code className="text-[#3691E0]">GET /tips/random</code>
-            </p>
           </div>
 
           <button
@@ -526,9 +642,7 @@ export default function HomePage() {
                       </span>
                     </p>
                     <p className="text-slate-300 mt-0.5">
-                      {(fb as any).comentario ??
-                        (fb as any).comment ??
-                        ""}
+                      {(fb as any).comentario ?? (fb as any).comment ?? ""}
                     </p>
                   </div>
                 ))}
