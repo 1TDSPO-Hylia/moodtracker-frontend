@@ -8,7 +8,6 @@ import {
   getUserConfig,
   type Tip,
   type User,
-  type RiskResult,
   type Checkin,
   type Config,
 } from "../lib/api";
@@ -23,7 +22,6 @@ export default function HomePage() {
 
   // --- estado para PAINEL DO USUÁRIO 1 ---
   const [user, setUser] = useState<User | null>(null);
-  const [risk, setRisk] = useState<RiskResult | null>(null);
   const [checkins, setCheckins] = useState<Checkin[]>([]);
   const [config, setConfig] = useState<Config | null>(null);
   const [demoError, setDemoError] = useState<string | null>(null);
@@ -58,14 +56,7 @@ async function loadDemoUserData() {
     hadError = true;
   }
 
-  // RISK
-  try {
-    const r = await getUserRisk(DEMO_USER_ID, 7);
-    setRisk(r);
-  } catch (err) {
-    console.error("Erro ao carregar risco demo:", err);
-    hadError = true;
-  }
+
 
   // CHECKINS
   try {
@@ -251,10 +242,10 @@ async function loadDemoUserData() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="app-page-title text-[#3691E0] text-lg md:text-xl">
-              Dica de bem-estar (ao vivo da API)
+              Dica de bem-estar
             </h2>
             <p className="app-text-muted text-xs md:text-sm">
-              Endpoint: <code className="text-[#3691E0]">GET /tips/random</code>
+              
             </p>
           </div>
 
@@ -377,32 +368,7 @@ async function loadDemoUserData() {
 
           {/* Coluna direita: risco + config */}
           <div className="space-y-3">
-            {/* Card risco */}
-            <div className="border border-[#485561] rounded-xl p-3 bg-[#252C33]/80 space-y-2">
-              <p className="text-xs text-slate-400">
-                GET /users/{DEMO_USER_ID}/risk?days=7
-              </p>
-              {risk ? (
-                <>
-                  <p className="text-sm font-semibold text-slate-100">
-                    Badge de risco:{" "}
-                    <span className="app-pill inline-flex">
-                      {(risk as any).badge}
-                    </span>
-                  </p>
-                  <p className="app-text-muted text-xs">
-                    Série (últimos dias):{" "}
-                    {Array.isArray((risk as any).series)
-                      ? (risk as any).series.join(" · ")
-                      : "-"}
-                  </p>
-                </>
-              ) : (
-                <p className="app-text-muted text-xs">
-                  Carregando risco consolidado...
-                </p>
-              )}
-            </div>
+
 
             {/* Card configurações */}
             <div className="border border-[#485561] rounded-xl p-3 bg-[#252C33]/80 space-y-1">
