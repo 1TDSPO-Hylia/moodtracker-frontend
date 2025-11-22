@@ -1,9 +1,8 @@
 import { NavLink } from "react-router-dom";
 import type { ReactNode } from "react";
-import { useTheme } from "../context/ThemeContext";
 
 export default function MainLayout({ children }: { children: ReactNode }) {
-  const { theme, toggleTheme } = useTheme();
+  
 
   return (
     <div className="app-shell">
