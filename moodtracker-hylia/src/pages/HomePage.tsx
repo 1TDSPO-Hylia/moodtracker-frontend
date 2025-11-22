@@ -337,15 +337,6 @@ export default function HomePage() {
               por Inteligência Artificial para entender melhor seu momento.
             </p>
           </div>
-
-          <div className="text-sm text-right space-y-2">
-            <div className="app-pill">
-              <span className="mr-1">●</span> Backend ativo em nuvem (Render)
-            </div>
-            <p className="text-xs text-slate-300">
-              API:{" "}
-            </p>
-          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3 pt-4">
