@@ -344,9 +344,6 @@ export default function HomePage() {
             </div>
             <p className="text-xs text-slate-300">
               API:{" "}
-              <code className="text-[#3691E0]">
-                /users, /checkins, /risk, /tips, /feedbacks, /config
-              </code>
             </p>
           </div>
         </div>
