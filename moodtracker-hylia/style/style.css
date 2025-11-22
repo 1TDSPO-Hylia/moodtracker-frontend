@@ -1,2 +1,105 @@
 @import "tailwindcss";
 
+@import "tailwindcss";
+
+/* Layout geral */
+.app-shell {
+  @apply min-h-screen flex flex-col bg-[#252C33] text-slate-50;
+}
+
+.app-container {
+  @apply max-w-6xl mx-auto px-4;
+}
+
+/* Navbar & Footer */
+.app-navbar {
+  @apply h-16 border-b border-[#485561] bg-[#313436] flex items-center;
+}
+
+.app-footer {
+  @apply border-t border-[#485561] bg-[#313436] mt-8;
+}
+
+.app-footer-inner {
+  @apply app-container py-4 text-xs text-slate-300 flex justify-between;
+}
+
+/* Cartões / superfícies */
+.app-card {
+  @apply rounded-2xl bg-[#313436] border border-[#485561] shadow-lg;
+}
+
+.app-soft-surface {
+  @apply rounded-2xl bg-[#313436] border border-[#485561];
+}
+
+/* Tipografia */
+.app-title {
+  @apply text-4xl font-bold tracking-tight text-[#3691E0];
+}
+
+.app-subtitle {
+  @apply text-2xl md:text-3xl font-semibold tracking-tight text-slate-50;
+}
+
+.app-text-muted {
+  @apply text-sm md:text-base text-slate-300;
+}
+
+/* Botões e chips */
+.app-primary-btn {
+  @apply inline-flex items-center justify-center rounded-md px-4 py-2
+    text-sm font-medium bg-[#3691E0] text-white
+    hover:bg-[#4A84B6] transition-colors;
+}
+
+.app-chip {
+  @apply px-3 py-1 rounded-full border border-[#485561] bg-[#313436]
+    text-slate-100 hover:bg-[#4A84B6] transition-colors text-sm;
+}
+
+/* FAQ item */
+.app-faq-item {
+  @apply border border-[#485561] rounded-xl overflow-hidden bg-[#313436]/80;
+}
+
+.app-faq-question {
+  @apply w-full text-left px-4 py-3 text-sm md:text-base font-medium
+    flex justify-between items-center;
+}
+
+.app-faq-question-open {
+  @apply bg-[#485561];
+}
+
+.app-faq-answer {
+  @apply px-4 text-sm md:text-base text-slate-200;
+}
+
+/* Formulário de contato */
+.app-input {
+  @apply w-full rounded-md border border-[#485561] bg-[#252C33]
+    px-3 py-2 text-sm text-slate-50
+    outline-none focus:ring-2 focus:ring-[#3691E0];
+}
+
+.app-textarea {
+  @apply app-input min-h-[100px] resize-vertical;
+}
+
+.app-error {
+  @apply text-xs text-red-400;
+}
+
+/* Cards de integrante */
+.app-member-card {
+  @apply app-card p-4 flex flex-col items-center text-center space-y-3 bg-[#313436]/90;
+}
+
+.app-member-avatar {
+  @apply w-24 h-24 rounded-full overflow-hidden border border-[#485561];
+}
+
+.app-member-links {
+  @apply flex gap-3 text-xs;
+}
