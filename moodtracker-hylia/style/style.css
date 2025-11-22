@@ -117,3 +117,26 @@
 .app-member-links {
   @apply flex gap-3 text-xs;
 }
+
+/* --- CARDS GERAIS DA HOME (DASHBOARD) --- */
+
+.app-card {
+  @apply rounded-2xl border border-[#485561] bg-[#313436]/90 shadow-lg;
+}
+
+.app-card-header {
+  @apply flex items-center justify-between mb-2;
+}
+
+.app-card-title {
+  @apply text-sm font-semibold text-slate-100;
+}
+
+.app-card-subtitle {
+  @apply text-xs text-slate-300;
+}
+
+.app-pill {
+  @apply inline-flex items-center rounded-full px-2 py-0.5
+    text-[11px] font-medium bg-[#252C33] text-slate-200 border border-[#485561];
+}
