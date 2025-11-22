@@ -86,6 +86,13 @@ export function createUser(data: NewUserInput): Promise<User> {
   });
 }
 
+export type NewCheckinInput = {
+  humor: number;         // 1–5
+  energia: number;       // 1–5
+  cargaTrabalho: number; // 1–5
+  observacao?: string;
+};
+
 /* ============================
    CHECKINS
 ============================ */
@@ -110,11 +117,7 @@ export function getUserCheckins(
 
 export function createCheckin(
   userId: number,
-  data: {
-    humor: number;
-    energia: number;
-    cargaTrabalho: number;
-  }
+  data: NewCheckinInput
 ): Promise<Checkin> {
   return request<Checkin>(`/users/${userId}/checkins`, {
     method: "POST",
@@ -147,8 +150,16 @@ export function deleteCheckin(id: number): Promise<void> {
 ============================ */
 
 export type AnalysisResult = {
-  score: number; // 0.0 a 1.0
-  summary: string;
+  id?: number;
+  idAnalise?: number;
+  checkinId?: number;
+  idCheckin?: number;
+  score?: number;
+  scoreRisco?: number;
+  risco?: number;
+  resumo?: string;
+  summary?: string;
+  createdAt?: string;
 };
 
 export function analyzeCheckin(id: number): Promise<AnalysisResult> {

@@ -8,6 +8,7 @@ import {
   getUserConfig,
   getUserFeedback,
   sendFeedback,
+  createCheckin,
   type Tip,
   type User,
   type Checkin,
@@ -47,6 +48,17 @@ export default function HomePage() {
   const [rating, setRating] = useState<number | null>(null);
   const [comment, setComment] = useState("");
   const [sendingFeedback, setSendingFeedback] = useState(false);
+
+   // --- CHECK-IN (para qualquer usuário, default 10) ---
+  const [checkinUserId, setCheckinUserId] = useState<number | "">(10);
+  const [ciHumor, setCiHumor] = useState(3);
+  const [ciEnergia, setCiEnergia] = useState(3);
+  const [ciCarga, setCiCarga] = useState(3);
+  const [ciObs, setCiObs] = useState("");
+  const [ciLoading, setCiLoading] = useState(false);
+  const [ciError, setCiError] = useState<string | null>(null);
+  const [ciSuccess, setCiSuccess] = useState<string | null>(null);
+  const [lastCheckin, setLastCheckin] = useState<Checkin | null>(null);
 
   // --- FUNÇÕES ---
 
@@ -203,6 +215,48 @@ export default function HomePage() {
     return d.toLocaleDateString("pt-BR");
   }
 
+    async function handleCreateCheckin(e: FormEvent) {
+    e.preventDefault();
+    setCiError(null);
+    setCiSuccess(null);
+    setLastCheckin(null);
+
+    if (checkinUserId === "" || Number.isNaN(Number(checkinUserId))) {
+      setCiError("Informe um ID de usuário válido (por exemplo, 10).");
+      return;
+    }
+
+    try {
+      setCiLoading(true);
+
+      const created = await createCheckin(Number(checkinUserId), {
+        humor: ciHumor,
+        energia: ciEnergia,
+        cargaTrabalho: ciCarga,
+        observacao: ciObs.trim() || undefined,
+      });
+
+      setLastCheckin(created);
+      const id =
+        (created as any).idCheckin ??
+        (created as any).id ??
+        "desconhecido";
+
+      setCiSuccess(
+        `Check-in criado com sucesso (ID do check-in: ${id}). Esse registro já pode ser analisado pela IA via POST /users/checkins/{id}/analysis.`
+      );
+
+      // opcional: resetar apenas observação
+      setCiObs("");
+    } catch (err) {
+      console.error("Erro ao criar check-in:", err);
+      setCiError("Não foi possível criar o check-in agora.");
+    } finally {
+      setCiLoading(false);
+    }
+  }
+
+
   // --- JSX ---
   return (
     <main className="app-container py-10 space-y-8">
@@ -277,6 +331,140 @@ export default function HomePage() {
             enviar feedbacks.
           </p>
         </header>
+
+         <section className="app-card p-5 md:p-6 space-y-4">
+        <header>
+          <h2 className="app-page-title text-lg md:text-xl text-[#3691E0]">
+            MoodTracker na prática – Registrar check-in
+          </h2>
+          <p className="app-text-muted text-xs md:text-sm mt-1 max-w-2xl">
+            Aqui o front-end consome o endpoint{" "}
+            <code className="text-[#3691E0]">
+              POST /users/&#123;userId&#125;/checkins
+            </code>{" "}
+            para registrar humor, energia e carga de trabalho de um usuário
+            real da API (por exemplo, o ID que você acabou de criar no
+            cadastro acima).
+          </p>
+        </header>
+
+        <form
+          onSubmit={handleCreateCheckin}
+          className="space-y-4"
+        >
+          <div className="grid gap-3 md:grid-cols-4">
+            <div className="space-y-1">
+              <label className="text-xs text-slate-200">
+                ID do usuário
+              </label>
+              <input
+                type="number"
+                className="w-full rounded-md border border-[#485561] bg-[#252C33] px-3 py-2 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-[#3691E0]"
+                value={checkinUserId}
+                onChange={(e) =>
+                  setCheckinUserId(
+                    e.target.value === "" ? "" : Number(e.target.value)
+                  )
+                }
+              />
+              <p className="app-text-muted text-[11px] mt-1">
+                Ex.: <span className="font-semibold">10</span> (usuário criado
+                agora há pouco).
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs text-slate-200">Humor (1–5)</label>
+              <input
+                type="number"
+                min={1}
+                max={5}
+                className="w-full rounded-md border border-[#485561] bg-[#252C33] px-3 py-2 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-[#3691E0]"
+                value={ciHumor}
+                onChange={(e) => setCiHumor(Number(e.target.value) || 1)}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs text-slate-200">Energia (1–5)</label>
+              <input
+                type="number"
+                min={1}
+                max={5}
+                className="w-full rounded-md border border-[#485561] bg-[#252C33] px-3 py-2 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-[#3691E0]"
+                value={ciEnergia}
+                onChange={(e) => setCiEnergia(Number(e.target.value) || 1)}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs text-slate-200">
+                Carga de trabalho (1–5)
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={5}
+                className="w-full rounded-md border border-[#485561] bg-[#252C33] px-3 py-2 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-[#3691E0]"
+                value={ciCarga}
+                onChange={(e) => setCiCarga(Number(e.target.value) || 1)}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs text-slate-200">Observação (opcional)</label>
+            <textarea
+              className="w-full min-h-[70px] rounded-md border border-[#485561] bg-[#252C33] px-3 py-2 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-[#3691E0] resize-y"
+              value={ciObs}
+              onChange={(e) => setCiObs(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+            <button
+              type="submit"
+              className="app-primary-btn text-xs md:text-sm w-full md:w-auto justify-center"
+              disabled={ciLoading}
+            >
+              {ciLoading ? "Registrando..." : "Registrar check-in na API"}
+            </button>
+
+            <div className="text-xs">
+              {ciError && <p className="app-error">{ciError}</p>}
+              {ciSuccess && (
+                <p className="text-[11px] text-emerald-300">{ciSuccess}</p>
+              )}
+            </div>
+          </div>
+
+          {lastCheckin && (
+            <div className="mt-2 border border-[#485561] rounded-xl p-3 bg-[#252C33]/80 text-xs text-slate-200 space-y-1">
+              <p className="font-semibold">
+                Último check-in criado (ID usuário:{" "}
+                {(lastCheckin as any).idUsuario ??
+                  checkinUserId}
+                ):
+              </p>
+              <p>
+                Data:{" "}
+                {formatDate((lastCheckin as any).dataCheckin)}
+              </p>
+              <p>
+                Humor: {(lastCheckin as any).humor} • Energia:{" "}
+                {(lastCheckin as any).energia} • Carga:{" "}
+                {(lastCheckin as any).cargaTrabalho}
+              </p>
+              {((lastCheckin as any).observacao || ciObs) && (
+                <p>
+                  Observação:{" "}
+                  {(lastCheckin as any).observacao ?? ciObs}
+                </p>
+              )}
+            </div>
+          )}
+        </form>
+      </section>
 
         <form
           onSubmit={handleRegister}
