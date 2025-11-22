@@ -1,11 +1,33 @@
 // src/pages/HomePage.tsx
 import { useEffect, useState } from "react";
-import { getRandomTip, type Tip } from "../lib/api";
+import {
+  getRandomTip,
+  getUserById,
+  getUserRisk,
+  getUserCheckins,
+  getUserConfig,
+  type Tip,
+  type User,
+  type RiskResult,
+  type Checkin,
+  type Config,
+} from "../lib/api";
+
+const DEMO_USER_ID = 8;
 
 export default function HomePage() {
+  // --- estado para DICA ---
   const [tip, setTip] = useState<Tip | null>(null);
   const [loadingTip, setLoadingTip] = useState(false);
   const [tipError, setTipError] = useState<string | null>(null);
+
+  // --- estado para PAINEL DO USUÁRIO 1 ---
+  const [user, setUser] = useState<User | null>(null);
+  const [risk, setRisk] = useState<RiskResult | null>(null);
+  const [checkins, setCheckins] = useState<Checkin[]>([]);
+  const [config, setConfig] = useState<Config | null>(null);
+  const [demoError, setDemoError] = useState<string | null>(null);
+  const [loadingDemo, setLoadingDemo] = useState(false);
 
   async function loadTip() {
     try {
@@ -21,9 +43,71 @@ export default function HomePage() {
     }
   }
 
+async function loadDemoUserData() {
+  setLoadingDemo(true);
+  setDemoError(null);
+
+  let hadError = false;
+
+  // USER
+  try {
+    const u = await getUserById(DEMO_USER_ID);
+    setUser(u);
+  } catch (err) {
+    console.error("Erro ao carregar usuário demo:", err);
+    hadError = true;
+  }
+
+  // RISK
+  try {
+    const r = await getUserRisk(DEMO_USER_ID, 7);
+    setRisk(r);
+  } catch (err) {
+    console.error("Erro ao carregar risco demo:", err);
+    hadError = true;
+  }
+
+  // CHECKINS
+  try {
+    const cs = await getUserCheckins(DEMO_USER_ID);
+    setCheckins(cs);
+  } catch (err) {
+    console.error("Erro ao carregar check-ins demo:", err);
+    hadError = true;
+  }
+
+  // CONFIG
+  try {
+    const cfg = await getUserConfig(DEMO_USER_ID);
+    setConfig(cfg);
+  } catch (err) {
+    console.error("Erro ao carregar config demo:", err);
+    hadError = true;
+  }
+
+  if (hadError) {
+    setDemoError(
+      "Alguns dados de demonstração não puderam ser carregados, mas o painel exibe o que foi obtido com sucesso."
+    );
+  }
+
+  setLoadingDemo(false);
+}
+
+
   useEffect(() => {
     loadTip();
+    loadDemoUserData();
   }, []);
+
+  // helper pra formatar data de check-in
+  function formatDate(dateStr: string | undefined) {
+    if (!dateStr) return "-";
+    // tenta lidar tanto com ISO quanto com '2024-11-21T00:00:00' etc.
+    const d = new Date(dateStr);
+    if (Number.isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString("pt-BR");
+  }
 
   return (
     <main className="app-container py-10 space-y-8">
@@ -192,15 +276,16 @@ export default function HomePage() {
           )}
 
           {!loadingTip && tip && (
-  <>
-    <h3 className="text-sm font-semibold text-slate-100 mb-1">
-      {tip.titulo}
-    </h3>
-    <p className="app-text-muted text-sm">
-      {tip.descricao}
-    </p>
-  </>
-)}
+            <>
+              <h3 className="text-sm font-semibold text-slate-100 mb-1">
+                {/* usando campos em pt-BR, como vem do backend */}
+                { (tip as any).titulo ?? "Dica de hoje" }
+              </h3>
+              <p className="app-text-muted text-sm">
+                { (tip as any).descricao ?? "Aproveite este momento para cuidar de você." }
+              </p>
+            </>
+          )}
 
           {!loadingTip && !tip && !tipError && (
             <p className="app-text-muted text-sm">
@@ -208,6 +293,158 @@ export default function HomePage() {
             </p>
           )}
         </div>
+      </section>
+
+      <section className="app-card p-5 md:p-6 space-y-4">
+        <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h2 className="app-page-title text-lg md:text-xl text-[#3691E0]">
+              Painel de Demonstração – Usuário 1
+            </h2>
+            <p className="app-text-muted text-xs md:text-sm">
+              Integração real com os endpoints de usuários, check-ins, risco e
+              configurações.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={loadDemoUserData}
+            className="app-primary-btn text-xs md:text-sm"
+            disabled={loadingDemo}
+          >
+            {loadingDemo ? "Atualizando..." : "Recarregar dados"}
+          </button>
+        </header>
+
+        {demoError && <p className="app-error">{demoError}</p>}
+
+        <div className="grid gap-4 md:grid-cols-[minmax(0,1.1fr),minmax(0,1fr)]">
+          <div className="space-y-3">
+            <div className="border border-[#485561] rounded-xl p-3 bg-[#252C33]/80 space-y-1">
+              <p className="text-xs text-slate-400 mb-1">
+                GET /users/{DEMO_USER_ID}
+              </p>
+              {user ? (
+                <>
+                  <p className="text-sm font-semibold text-slate-100">
+                    { (user as any).nome ?? (user as any).name ?? "Usuário 1" }
+                  </p>
+                  <p className="text-xs text-slate-300">
+                    {(user as any).email}
+                  </p>
+                </>
+              ) : (
+                <p className="app-text-muted text-xs">
+                  Carregando dados do usuário...
+                </p>
+              )}
+            </div>
+
+            {/* Card check-ins */}
+            <div className="border border-[#485561] rounded-xl p-3 bg-[#252C33]/80">
+              <p className="text-xs text-slate-400 mb-2">
+                GET /users/{DEMO_USER_ID}/checkins
+              </p>
+
+              {checkins.length === 0 ? (
+                <p className="app-text-muted text-xs">
+                  Nenhum check-in encontrado para o usuário de demonstração.
+                </p>
+              ) : (
+                <div className="space-y-2 max-h-56 overflow-auto pr-1">
+                  {checkins.slice(0, 5).map((c) => (
+                    <div
+                      key={c.id}
+                      className="text-xs border border-[#485561] rounded-lg px-2 py-1 flex justify-between gap-2"
+                    >
+                      <div className="space-y-0.5">
+                        <p className="text-slate-100">
+                          {formatDate((c as any).dataCheckin)}
+                        </p>
+                        <p className="text-slate-300">
+                          Humor: {(c as any).humor} • Energia:{" "}
+                          {(c as any).energia} • Carga:{" "}
+                          {(c as any).cargaTrabalho}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Coluna direita: risco + config */}
+          <div className="space-y-3">
+            {/* Card risco */}
+            <div className="border border-[#485561] rounded-xl p-3 bg-[#252C33]/80 space-y-2">
+              <p className="text-xs text-slate-400">
+                GET /users/{DEMO_USER_ID}/risk?days=7
+              </p>
+              {risk ? (
+                <>
+                  <p className="text-sm font-semibold text-slate-100">
+                    Badge de risco:{" "}
+                    <span className="app-pill inline-flex">
+                      {(risk as any).badge}
+                    </span>
+                  </p>
+                  <p className="app-text-muted text-xs">
+                    Série (últimos dias):{" "}
+                    {Array.isArray((risk as any).series)
+                      ? (risk as any).series.join(" · ")
+                      : "-"}
+                  </p>
+                </>
+              ) : (
+                <p className="app-text-muted text-xs">
+                  Carregando risco consolidado...
+                </p>
+              )}
+            </div>
+
+            {/* Card configurações */}
+            <div className="border border-[#485561] rounded-xl p-3 bg-[#252C33]/80 space-y-1">
+              <p className="text-xs text-slate-400 mb-1">
+                GET /config/users/{DEMO_USER_ID}
+              </p>
+              {config ? (
+                <>
+                  <p className="text-sm font-semibold text-slate-100">
+                    Tema: {(config as any).tema}
+                  </p>
+                  <p className="app-text-muted text-xs">
+                    Notificações:{" "}
+                    {(config as any).notificacaoAtiva === true ||
+                    (config as any).notificacaoAtiva === 1
+                      ? "Ativadas"
+                      : "Desativadas"}
+                  </p>
+                  <p className="app-text-muted text-xs">
+                    Horário limite:{" "}
+                    {(config as any).horarioLimite ?? "não definido"}
+                  </p>
+                  <p className="app-text-muted text-xs">
+                    Fuso horário:{" "}
+                    {(config as any).fusoHorario ?? "não definido"}
+                  </p>
+                </>
+              ) : (
+                <p className="app-text-muted text-xs">
+                  Carregando configurações do usuário...
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <p className="app-text-muted text-[11px] mt-1">
+          Nesta seção, o front-end consome diretamente os endpoints da API
+          MoodTracker, utilizando um usuário de demonstração (ID {DEMO_USER_ID}){" "}
+          para evidenciar a integração com banco Oracle e regras de negócio do
+          backend Java + Quarkus.
+        </p>
       </section>
     </main>
   );
