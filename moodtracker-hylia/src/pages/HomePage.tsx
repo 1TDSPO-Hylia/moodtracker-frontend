@@ -20,7 +20,14 @@ import {
 
 const DEMO_USER_ID = 8;
 
+
+
 export default function HomePage() {
+
+  useEffect(() => {
+    document.title = "MoodTracker – Monitoramento Emocional";
+  }, []);
+  
 
    // --- ANÁLISE DE IA DO ÚLTIMO CHECK-IN ---
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
