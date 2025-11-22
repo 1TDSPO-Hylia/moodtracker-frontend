@@ -45,11 +45,11 @@ async function request<T>(
 // Tipo compatível com o backend
 export type Tip = {
   id: number;
-  title: string;
-  description: string;
+  titulo: string;
+  descricao: string;
+  categoria?: string;
 };
 
-// GET /tips/random
 export function getRandomTip(): Promise<Tip> {
   return request<Tip>("/tips/random");
 }

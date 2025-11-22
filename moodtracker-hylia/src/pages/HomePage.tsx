@@ -192,15 +192,15 @@ export default function HomePage() {
           )}
 
           {!loadingTip && tip && (
-            <>
-              <h3 className="text-sm font-semibold text-slate-100 mb-1">
-                {tip.title ?? "Dica de hoje"}
-              </h3>
-              <p className="app-text-muted text-sm">
-                {tip.description ?? "Aproveite este momento para cuidar de você."}
-              </p>
-            </>
-          )}
+  <>
+    <h3 className="text-sm font-semibold text-slate-100 mb-1">
+      {tip.titulo}
+    </h3>
+    <p className="app-text-muted text-sm">
+      {tip.descricao}
+    </p>
+  </>
+)}
 
           {!loadingTip && !tip && !tipError && (
             <p className="app-text-muted text-sm">
