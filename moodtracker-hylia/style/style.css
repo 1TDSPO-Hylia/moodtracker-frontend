@@ -3,7 +3,7 @@
 /* --- LAYOUT GERAL --- */
 
 .app-shell {
-  @apply min-h-screen flex flex-col bg-[#252C33] text-slate-50;
+  @apply min-h-screen flex flex-col;
 }
 
 .app-container {
@@ -147,6 +147,12 @@
    .theme-dark / .theme-light vem do MainLayout
 ============================ */
 
+/* ============================
+   THEMES (Escuro / Claro)
+   Controlados via ThemeContext
+============================ */
+
+/* Fundo e texto base */
 .theme-dark .app-shell {
   @apply bg-[#252C33] text-slate-50;
 }
@@ -156,19 +162,19 @@
 }
 
 /* Navbar & footer */
-
 .theme-dark .app-navbar,
 .theme-dark .app-footer {
-  @apply bg-[#313436] border-[#485561];
+  @apply bg-[#313436] border-[#485561] text-slate-50;
 }
 
 .theme-light .app-navbar,
 .theme-light .app-footer {
-  @apply bg-slate-100 border-slate-300 text-slate-900;
+  @apply bg-white border-slate-200 text-slate-900;
 }
 
-/* Cards */
+/* Container interno do footer já existe como app-footer-inner */
 
+/* Cards gerais */
 .theme-dark .app-card {
   @apply bg-[#313436]/90 border-[#485561];
 }
@@ -177,8 +183,44 @@
   @apply bg-white border-slate-200;
 }
 
-/* Chips / botões */
+/* Títulos */
+.theme-dark .app-main-title,
+.theme-dark .app-page-title {
+  @apply text-slate-50;
+}
 
+.theme-light .app-main-title,
+.theme-light .app-page-title {
+  @apply text-slate-900;
+}
+
+/* Subtítulos, textos suaves */
+.theme-dark .app-card-subtitle {
+  @apply text-slate-300;
+}
+
+.theme-light .app-card-subtitle {
+  @apply text-slate-600;
+}
+
+.theme-dark .app-text-muted {
+  @apply text-sm md:text-base text-slate-300;
+}
+
+.theme-light .app-text-muted {
+  @apply text-sm md:text-base text-slate-700;
+}
+
+/* Classe util que você usa no AboutPage: text-muted-foreground */
+.text-muted-foreground {
+  @apply text-slate-300;
+}
+
+.theme-light .text-muted-foreground {
+  @apply text-slate-700;
+}
+
+/* Chips / navegação interna */
 .theme-dark .app-chip {
   @apply bg-[#313436] border-[#485561] text-slate-100 hover:bg-[#4A84B6];
 }
@@ -187,6 +229,7 @@
   @apply bg-slate-100 border-slate-300 text-slate-900 hover:bg-slate-200;
 }
 
+/* Botão primário */
 .theme-dark .app-primary-btn {
   @apply bg-[#3691E0] text-white hover:bg-[#4A84B6];
 }
@@ -196,7 +239,6 @@
 }
 
 /* Inputs / textareas */
-
 .theme-dark .app-input,
 .theme-dark .app-textarea {
   @apply bg-[#252C33] border-[#133b5f] text-slate-50;
@@ -207,12 +249,29 @@
   @apply bg-white border-slate-300 text-slate-900;
 }
 
-/* FAQ cards */
-
+/* FAQ */
 .theme-dark .app-faq-item {
   @apply bg-[#313436]/80 border-[#485561];
 }
 
 .theme-light .app-faq-item {
+  @apply bg-white border-slate-200;
+}
+
+/* Card de “soft surface” se você usar algo assim */
+.app-soft-surface {
+  @apply rounded-xl border border-[#485561] bg-[#313436]/90;
+}
+
+.theme-light .app-soft-surface {
+  @apply bg-slate-50 border-slate-200;
+}
+
+/* Cards de integrantes */
+.theme-dark .app-member-card {
+  @apply bg-[#313436]/90 border-[#485561];
+}
+
+.theme-light .app-member-card {
   @apply bg-white border-slate-200;
 }
