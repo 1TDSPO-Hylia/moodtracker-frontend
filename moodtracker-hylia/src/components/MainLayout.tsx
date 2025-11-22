@@ -44,13 +44,6 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         <div className="app-footer-inner">
           <span>MoodTracker – Global Solution FIAP 1TDS</span>
           <span>Backend: Java + Quarkus · Frontend: React + Vite + Tailwind</span>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="app-chip text-xs"
-          >
-            {theme === "dark" ? "Light theme" : "Dark theme"}
-          </button>
         </div>
         
       </footer>
