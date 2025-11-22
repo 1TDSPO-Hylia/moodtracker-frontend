@@ -1,10 +1,16 @@
+import { Routes, Route } from "react-router-dom";
+import MainLayout from "./components/MainLayout";
+import HomePage from "./pages/HomePage";
+import AboutPage from "./pages/AboutPage";
+
 function App() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900">
-      <h1 className="text-3xl font-bold text-white">
-        Hello MoodTracker 👋
-      </h1>
-    </div>
+    <Routes>
+      <Route path="/" element={<MainLayout />}>
+        <Route index element={<HomePage />} />
+        <Route path="about" element={<AboutPage />} />
+      </Route>
+    </Routes>
   );
 }
 
