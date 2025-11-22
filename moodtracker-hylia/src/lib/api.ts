@@ -175,16 +175,17 @@ export function getUserRisk(
 ============================ */
 
 export type Feedback = {
-  id: number;
-  userId: number;
-  rating: number;
-  comment: string;
+  id?: number;
+  idUsuario?: number;
+  usuarioId?: number;
+  avaliacao?: number;
+  comentario?: string;
 };
 
 export function sendFeedback(data: {
-  userId: number;
-  rating: number;
-  comment: string;
+  usuarioId: number;
+  avaliacao: number;
+  comentario: string;
 }): Promise<Feedback> {
   return request<Feedback>("/feedbacks", {
     method: "POST",

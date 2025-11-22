@@ -3,16 +3,20 @@ import { useEffect, useState } from "react";
 import {
   getRandomTip,
   getUserById,
-  getUserRisk,
   getUserCheckins,
   getUserConfig,
+  getUserFeedback,
+  sendFeedback,
   type Tip,
   type User,
   type Checkin,
   type Config,
+  type Feedback,
 } from "../lib/api";
 
 const DEMO_USER_ID = 8;
+
+
 
 export default function HomePage() {
   // --- estado para DICA ---
@@ -26,6 +30,15 @@ export default function HomePage() {
   const [config, setConfig] = useState<Config | null>(null);
   const [demoError, setDemoError] = useState<string | null>(null);
   const [loadingDemo, setLoadingDemo] = useState(false);
+
+  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+const [loadingFeedbacks, setLoadingFeedbacks] = useState(false);
+const [feedbackError, setFeedbackError] = useState<string | null>(null);
+
+
+const [rating, setRating] = useState<number | null>(null);
+const [comment, setComment] = useState("");
+const [sendingFeedback, setSendingFeedback] = useState(false);
 
   async function loadTip() {
     try {
@@ -87,9 +100,10 @@ async function loadDemoUserData() {
 
 
   useEffect(() => {
-    loadTip();
-    loadDemoUserData();
-  }, []);
+  loadTip();
+  loadDemoUserData();
+  loadFeedbacks();
+}, []);
 
   // helper pra formatar data de check-in
   function formatDate(dateStr: string | undefined) {
@@ -99,6 +113,54 @@ async function loadDemoUserData() {
     if (Number.isNaN(d.getTime())) return dateStr;
     return d.toLocaleDateString("pt-BR");
   }
+
+  async function loadFeedbacks() {
+  try {
+    setLoadingFeedbacks(true);
+    setFeedbackError(null);
+    const list = await getUserFeedback(DEMO_USER_ID);
+    setFeedbacks(list);
+  } catch (err) {
+    console.error("Erro ao carregar feedbacks:", err);
+    setFeedbackError("Não foi possível carregar os feedbacks deste usuário.");
+  } finally {
+    setLoadingFeedbacks(false);
+  }
+}
+
+async function handleSubmitFeedback(e: React.FormEvent) {
+  e.preventDefault();
+  if (rating == null) {
+    setFeedbackError("Escolha uma nota de 1 a 5 antes de enviar.");
+    return;
+  }
+  if (!comment.trim()) {
+    setFeedbackError("Escreva um comentário antes de enviar.");
+    return;
+  }
+
+  try {
+    setSendingFeedback(true);
+    setFeedbackError(null);
+
+    await sendFeedback({
+  usuarioId: DEMO_USER_ID,
+  avaliacao: rating,
+  comentario: comment.trim(),
+});
+
+    setComment("");
+    setRating(null);
+
+    // recarrega a lista depois de enviar
+    await loadFeedbacks();
+  } catch (err) {
+    console.error("Erro ao enviar feedback:", err);
+    setFeedbackError("Não foi possível enviar o feedback agora.");
+  } finally {
+    setSendingFeedback(false);
+  }
+}
 
   return (
     <main className="app-container py-10 space-y-8">
@@ -189,9 +251,7 @@ async function loadDemoUserData() {
         <article className="app-card p-5 flex flex-col justify-between">
           <header className="app-card-header">
             <div>
-              <h2 className="app-card-title">Análise com IA</h2>
-              <p className="app-card-subtitle">
-                Score de risco e resumo interpretativo.
+              <h2 className="app-card-title
               </p>
             </div>
             <span className="app-pill">
@@ -412,6 +472,123 @@ async function loadDemoUserData() {
           backend Java + Quarkus.
         </p>
       </section>
+
+      {/* FEEDBACKS DO USUÁRIO DEMO */}
+<section className="app-card p-5 md:p-6 space-y-4">
+  <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div>
+      <h2 className="app-page-title text-lg md:text-xl text-[#3691E0]">
+        Feedbacks do Usuário {DEMO_USER_ID}
+      </h2>
+      <p className="app-text-muted text-xs md:text-sm">
+        Integração com os endpoints GET /feedbacks/users/{DEMO_USER_ID} e
+        POST /feedbacks.
+      </p>
+    </div>
+    <button
+      type="button"
+      onClick={loadFeedbacks}
+      className="app-primary-btn text-xs md:text-sm"
+      disabled={loadingFeedbacks}
+    >
+      {loadingFeedbacks ? "Atualizando..." : "Recarregar feedbacks"}
+    </button>
+  </header>
+
+  {feedbackError && <p className="app-error">{feedbackError}</p>}
+
+  <div className="grid gap-4 md:grid-cols-[minmax(0,1.1fr),minmax(0,0.9fr)]">
+    {/* Lista de feedbacks */}
+    <div className="border border-[#485561] rounded-xl p-3 bg-[#252C33]/80">
+      <p className="text-xs text-slate-400 mb-2">
+        GET /feedbacks/users/{DEMO_USER_ID}
+      </p>
+
+      {loadingFeedbacks && feedbacks.length === 0 ? (
+        <p className="app-text-muted text-xs">Carregando feedbacks...</p>
+      ) : feedbacks.length === 0 ? (
+        <p className="app-text-muted text-xs">
+          Nenhum feedback registrado ainda para este usuário.
+        </p>
+      ) : (
+        <div className="space-y-2 max-h-56 overflow-auto pr-1">
+          {feedbacks.map((fb) => (
+            <div
+              key={fb.id}
+              className="text-xs border border-[#485561] rounded-lg px-2 py-1"
+            >
+              <p className="text-slate-100">
+  Nota:{" "}
+  <span className="font-semibold">
+    {(fb as any).avaliacao ??
+     (fb as any).rating ??
+     (fb as any).nota ??
+     "–"}
+  </span>
+</p>
+<p className="text-slate-300 mt-0.5">
+  {(fb as any).comentario ??
+   (fb as any).comment ??
+   ""}
+</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+
+    {/* Formulário de novo feedback */}
+    <form
+      onSubmit={handleSubmitFeedback}
+      className="border border-[#485561] rounded-xl p-3 bg-[#252C33]/80 space-y-3"
+    >
+      <p className="text-xs text-slate-400 mb-1">
+        POST /feedbacks
+      </p>
+
+      <div className="space-y-1">
+        <label className="text-xs text-slate-200">
+          Nota (1 a 5)
+        </label>
+        <div className="flex gap-2">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <button
+              key={n}
+              type="button"
+              className={`px-2 py-1 rounded-md text-xs border ${
+                rating === n
+                  ? "bg-[#3691E0] border-[#3691E0] text-white"
+                  : "bg-transparent border-[#485561] text-slate-200 hover:bg-[#485561]"
+              }`}
+              onClick={() => setRating(n)}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-xs text-slate-200">
+          Comentário
+        </label>
+        <textarea
+          className="w-full min-h-[70px] rounded-md border border-[#485561] bg-[#252C33] px-3 py-2 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-[#3691E0] resize-vertical"
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+        />
+      </div>
+
+      <button
+        type="submit"
+        className="app-primary-btn text-xs md:text-sm w-full justify-center"
+        disabled={sendingFeedback}
+      >
+        {sendingFeedback ? "Enviando..." : "Enviar feedback"}
+      </button>
+    </form>
+  </div>
+</section>
     </main>
   );
 }
