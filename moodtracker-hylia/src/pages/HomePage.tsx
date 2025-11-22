@@ -9,16 +9,23 @@ import {
   getUserFeedback,
   sendFeedback,
   createCheckin,
+  analyzeCheckin,
   type Tip,
   type User,
   type Checkin,
   type Config,
   type Feedback,
+  type AnalysisResult,
 } from "../lib/api";
 
 const DEMO_USER_ID = 8;
 
 export default function HomePage() {
+
+   // --- ANÁLISE DE IA DO ÚLTIMO CHECK-IN ---
+  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
   // --- DICA ---
   const [tip, setTip] = useState<Tip | null>(null);
   const [loadingTip, setLoadingTip] = useState(false);
@@ -246,16 +253,73 @@ export default function HomePage() {
         `Check-in criado com sucesso (ID do check-in: ${id}). Esse registro já pode ser analisado pela IA via POST /users/checkins/{id}/analysis.`
       );
 
-      // opcional: resetar apenas observação
+      
       setCiObs("");
-    } catch (err) {
-      console.error("Erro ao criar check-in:", err);
-      setCiError("Não foi possível criar o check-in agora.");
-    } finally {
-      setCiLoading(false);
-    }
+     } catch (err: any) {
+  console.error("Erro ao criar check-in:", err);
+
+  const raw =
+    err?.message ||
+    err?.detail ||
+    err?.error ||
+    "Não foi possível criar o check-in agora.";
+
+  if (raw.includes("checkin already exists for day")) {
+    setCiError(
+      "Já existe um check-in registrado hoje para este usuário. " +
+      "Use outro usuário ou aguarde o próximo dia para registrar novamente."
+    );
+  } else {
+    setCiError(raw);
+  }
+} finally {
+  setCiLoading(false);
+}
   }
 
+    function extractScore(a: any): number | null {
+    const raw =
+      a?.score ??
+      a?.scoreRisco ??
+      a?.risco ??
+      null;
+    return typeof raw === "number" ? raw : null;
+  }
+
+  function getBadge(score: number | null): { label: string; color: string } {
+    if (score == null) return { label: "Indefinido", color: "bg-slate-500" };
+    if (score < 0.33) return { label: "Baixo", color: "bg-emerald-600" };
+    if (score < 0.66) return { label: "Moderado", color: "bg-amber-500" };
+    return { label: "Alto", color: "bg-red-600" };
+  }
+
+  async function handleAnalyzeLastCheckin() {
+    setAnalysisError(null);
+    setAnalysis(null);
+
+    const checkinId =
+      (lastCheckin as any)?.idCheckin ??
+      (lastCheckin as any)?.id ??
+      null;
+
+    if (!checkinId) {
+      setAnalysisError(
+        "Nenhum check-in recente encontrado para analisar. Crie um check-in primeiro."
+      );
+      return;
+    }
+
+    try {
+      setAnalysisLoading(true);
+      const result = await analyzeCheckin(checkinId);
+      setAnalysis(result);
+    } catch (err) {
+      console.error("Erro ao analisar check-in com IA:", err);
+      setAnalysisError("Não foi possível analisar este check-in agora.");
+    } finally {
+      setAnalysisLoading(false);
+    }
+  }
 
   // --- JSX ---
   return (
@@ -320,7 +384,7 @@ export default function HomePage() {
 
       {/* Cadastro rápido de usuário */}
       <section className="app-card p-5 md:p-6 space-y-4">
-        <header>
+       <header>
           <h2 className="app-page-title text-lg md:text-xl text-[#3691E0]">
             Comece agora – Cadastro de Usuário
           </h2>
@@ -331,8 +395,64 @@ export default function HomePage() {
             enviar feedbacks.
           </p>
         </header>
+      <form
+          onSubmit={handleRegister}
+          className="grid gap-3 md:grid-cols-[minmax(0,1.2fr),minmax(0,0.8fr)] md:items-end"
+        >
+          <div className="space-y-2">
+            <div className="grid gap-2 md:grid-cols-2">
+              <div className="space-y-1">
+                <label className="text-xs text-slate-200">Nome</label>
+                <input
+                  type="text"
+                  className="w-full rounded-md border border-[#485561] bg-[#252C33] px-3 py-2 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-[#3691E0]"
+                  value={regName}
+                  onChange={(e) => setRegName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-slate-200">Email</label>
+                <input
+                  type="email"
+                  className="w-full rounded-md border border-[#485561] bg-[#252C33] px-3 py-2 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-[#3691E0]"
+                  value={regEmail}
+                  onChange={(e) => setRegEmail(e.target.value)}
+                />
+              </div>
+            </div>
 
-         <section className="app-card p-5 md:p-6 space-y-4">
+            <div className="space-y-1 md:max-w-xs">
+              <label className="text-xs text-slate-200">Senha</label>
+              <input
+                type="password"
+                className="w-full rounded-md border border-[#485561] bg-[#252C33] px-3 py-2 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-[#3691E0]"
+                value={regPassword}
+                onChange={(e) => setRegPassword(e.target.value)}
+              />
+              <p className="app-text-muted text-[11px] mt-1">
+                A senha é usada apenas para fins acadêmicos nesta demo.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <button
+              type="submit"
+              className="app-primary-btn text-xs md:text-sm w-full justify-center"
+              disabled={regLoading}
+            >
+              {regLoading ? "Cadastrando..." : "Criar usuário na API"}
+            </button>
+
+            {regError && <p className="app-error text-xs">{regError}</p>}
+            {regSuccess && (
+              <p className="text-[11px] text-emerald-300">{regSuccess}</p>
+            )}
+          </div>
+        </form>
+
+       
+
         <header>
           <h2 className="app-page-title text-lg md:text-xl text-[#3691E0]">
             MoodTracker na prática – Registrar check-in
@@ -438,166 +558,88 @@ export default function HomePage() {
             </div>
           </div>
 
-          {lastCheckin && (
-            <div className="mt-2 border border-[#485561] rounded-xl p-3 bg-[#252C33]/80 text-xs text-slate-200 space-y-1">
-              <p className="font-semibold">
-                Último check-in criado (ID usuário:{" "}
-                {(lastCheckin as any).idUsuario ??
-                  checkinUserId}
-                ):
-              </p>
-              <p>
-                Data:{" "}
-                {formatDate((lastCheckin as any).dataCheckin)}
-              </p>
-              <p>
-                Humor: {(lastCheckin as any).humor} • Energia:{" "}
-                {(lastCheckin as any).energia} • Carga:{" "}
-                {(lastCheckin as any).cargaTrabalho}
-              </p>
-              {((lastCheckin as any).observacao || ciObs) && (
-                <p>
-                  Observação:{" "}
-                  {(lastCheckin as any).observacao ?? ciObs}
-                </p>
+             {lastCheckin && (
+            <div className="mt-2 border border-[#485561] rounded-xl p-3 bg-[#252C33]/80 text-xs text-slate-200 space-y-2">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                <div>
+                  <p className="font-semibold">
+                    Último check-in criado (ID usuário:{" "}
+                    {(lastCheckin as any).idUsuario ?? checkinUserId}
+                    ):
+                  </p>
+                  <p>
+                    Data: {formatDate((lastCheckin as any).dataCheckin)}
+                  </p>
+                  <p>
+                    Humor: {(lastCheckin as any).humor} • Energia:{" "}
+                    {(lastCheckin as any).energia} • Carga:{" "}
+                    {(lastCheckin as any).cargaTrabalho}
+                  </p>
+                  {((lastCheckin as any).observacao || ciObs) && (
+                    <p>
+                      Observação:{" "}
+                      {(lastCheckin as any).observacao ?? ciObs}
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleAnalyzeLastCheckin}
+                  className="app-primary-btn text-[11px] md:text-xs justify-center"
+                  disabled={analysisLoading}
+                >
+                  {analysisLoading
+                    ? "Analisando com IA..."
+                    : "Analisar este check-in com IA"}
+                </button>
+              </div>
+
+              {analysisError && (
+                <p className="app-error mt-1">{analysisError}</p>
+              )}
+
+              {analysis && (
+                <div className="mt-2 border border-[#485561] rounded-lg p-2 bg-[#252C33] space-y-1">
+                  {(() => {
+                    const score = extractScore(analysis);
+                    const { label, color } = getBadge(score);
+                    return (
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${color} text-white`}
+                          >
+                            Risco {label}
+                          </span>
+                          {score != null && (
+                            <span className="text-[11px] text-slate-300">
+                              Score: {score.toFixed(2)}
+                            </span>
+                          )}
+                        </div>
+                        {analysis.createdAt && (
+                          <span className="text-[10px] text-slate-400">
+                            Analisado em:{" "}
+                            {formatDate(analysis.createdAt as any)}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
+
+                  <p className="mt-1 text-[11px] text-slate-200">
+                    {(analysis as any).resumo ??
+                      (analysis as any).summary ??
+                      "Análise gerada pela IA para este check-in."}
+                  </p>
+                </div>
               )}
             </div>
           )}
         </form>
-      </section>
 
-        <form
-          onSubmit={handleRegister}
-          className="grid gap-3 md:grid-cols-[minmax(0,1.2fr),minmax(0,0.8fr)] md:items-end"
-        >
-          <div className="space-y-2">
-            <div className="grid gap-2 md:grid-cols-2">
-              <div className="space-y-1">
-                <label className="text-xs text-slate-200">Nome</label>
-                <input
-                  type="text"
-                  className="w-full rounded-md border border-[#485561] bg-[#252C33] px-3 py-2 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-[#3691E0]"
-                  value={regName}
-                  onChange={(e) => setRegName(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs text-slate-200">Email</label>
-                <input
-                  type="email"
-                  className="w-full rounded-md border border-[#485561] bg-[#252C33] px-3 py-2 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-[#3691E0]"
-                  value={regEmail}
-                  onChange={(e) => setRegEmail(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1 md:max-w-xs">
-              <label className="text-xs text-slate-200">Senha</label>
-              <input
-                type="password"
-                className="w-full rounded-md border border-[#485561] bg-[#252C33] px-3 py-2 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-[#3691E0]"
-                value={regPassword}
-                onChange={(e) => setRegPassword(e.target.value)}
-              />
-              <p className="app-text-muted text-[11px] mt-1">
-                A senha é usada apenas para fins acadêmicos nesta demo.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <button
-              type="submit"
-              className="app-primary-btn text-xs md:text-sm w-full justify-center"
-              disabled={regLoading}
-            >
-              {regLoading ? "Cadastrando..." : "Criar usuário na API"}
-            </button>
-
-            {regError && <p className="app-error text-xs">{regError}</p>}
-            {regSuccess && (
-              <p className="text-[11px] text-emerald-300">{regSuccess}</p>
-            )}
-          </div>
-        </form>
-      </section>
-
-      {/* Cards principais do “app” */}
-      <section className="grid gap-6 md:grid-cols-3">
-        {/* Card 1 – Check-ins diários */}
-        <article className="app-card p-5 flex flex-col justify-between">
-          <header className="app-card-header">
-            <div>
-              <h2 className="app-card-title">Check-ins diários</h2>
-              <p className="app-card-subtitle">
-                Registro de humor, energia e carga de trabalho.
-              </p>
-            </div>
-            <span className="app-pill">/users/&#123;id&#125;/checkins</span>
-          </header>
-
-          <ul className="mt-2 space-y-1 text-xs text-slate-300">
-            <li>• Registro diário do estado emocional.</li>
-            <li>• Filtros por período (from/to).</li>
-            <li>• Base para as análises de risco.</li>
-          </ul>
-
-          <button className="mt-4 app-primary-btn w-full justify-center">
-            Em breve: registrar check-in
-          </button>
-        </article>
-
-        {/* Card 2 – Análise por IA */}
-        <article className="app-card p-5 flex flex-col justify-between">
-          <header className="app-card-header">
-            <div>
-              <h2 className="app-card-title">Análise com IA</h2>
-              <p className="app-card-subtitle">
-                Score de risco e resumo interpretativo.
-              </p>
-            </div>
-            <span className="app-pill">
-              POST /users/checkins/&#123;id&#125;/analysis
-            </span>
-          </header>
-
-          <ul className="mt-2 space-y-1 text-xs text-slate-300">
-            <li>• Envia o check-in para a API da OpenAI.</li>
-            <li>• Recebe um score de risco de burnout.</li>
-            <li>• Retorna um texto explicando o risco.</li>
-          </ul>
-
-          <button className="mt-4 app-primary-btn w-full justify-center">
-            Em breve: analisar um check-in
-          </button>
-        </article>
-
-        {/* Card 3 – Risco consolidado + dicas */}
-        <article className="app-card p-5 flex flex-col justify-between">
-          <header className="app-card-header">
-            <div>
-              <h2 className="app-card-title">Risco & Dicas</h2>
-              <p className="app-card-subtitle">
-                Visão geral dos últimos dias e sugestões.
-              </p>
-            </div>
-            <div className="flex flex-col items-end gap-1">
-              <span className="app-pill">GET /users/&#123;id&#125;/risk</span>
-              <span className="app-pill">GET /tips/random</span>
-            </div>
-          </header>
-
-          <ul className="mt-2 space-y-1 text-xs text-slate-300">
-            <li>• Calcula o risco médio dos últimos N dias.</li>
-            <li>• Retorna um “badge” de risco para facilitar a leitura.</li>
-            <li>• Sugere uma dica de bem-estar aleatória.</li>
-          </ul>
-
-          <button className="mt-4 app-primary-btn w-full justify-center">
-            Em breve: ver resumo da semana
-          </button>
-        </article>
+        
       </section>
 
       {/* Dica real da API */}
