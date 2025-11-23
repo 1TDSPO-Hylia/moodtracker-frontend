@@ -172,3 +172,13 @@ LinkedIn: https://linkedin.com/in/rafaela-ferreira-santos-8470051b7
 RM: 561996 — Turma: 1TDSPO  
 GitHub: https://github.com/LuArGo  
 LinkedIn: https://linkedin.com/in/luccaagomes02
+
+## 12. Video
+
+### Video Pitch
+
+https://www.youtube.com/watch?v=EjGmsHIYzlc
+
+### Video Demo
+
+https://www.youtube.com/watch?v=hA0fVkPOPBE
