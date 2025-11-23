@@ -27,6 +27,7 @@ O objetivo da solução é oferecer acompanhamento simples e visual do estado em
 9. Endpoints Principais
 10. Autores e Créditos
 11. Contato
+12. Video
 
 ## 4. Sobre o Projeto
 
